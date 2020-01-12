@@ -31,7 +31,7 @@ int processPacket()
 
 	JVSPacket outputPacket;
 
-	int index = 0;
+	int index = 2;
 
 	while (index < inPacket.length)
 	{
