@@ -1,6 +1,8 @@
 #include "jvs.h"
 
 int serialIO = -1;
+char* devicePath = "/dev/ttyUSB0";
+int deviceID = -1;
 
 int connectJVS()
 {
@@ -15,216 +17,46 @@ int connectJVS()
 	return 1;
 }
 
-int resetJVS()
+int processPacket()
 {
-	JVSPacket packet;
-	JVSPacket returnedPacket;
-	packet.destination = BROADCAST;
+	JVSPacket inPacket;
 
-	/* Send the reset command */
-	unsigned char resetData[] = {CMD_RESET, CMD_RESET_ARG};
-	packet.length = 2;
-	memcpy(packet.data, resetData, packet.length);
-	if (!writePacket(&packet))
+	if (!readPacket(&inPacket))
 	{
-		printf("Failed to reset device\n");
-		return -1;
-	}
-
-	usleep(1000 * 1000);
-
-	/* Assign the I/O device ID 0x01 */
-	unsigned char deviceAssignData[] = {CMD_ASSIGN_ADDR, DEVICE_ID};
-	packet.length = 2;
-	memcpy(packet.data, deviceAssignData, packet.length);
-	if (!runCommand(&packet, &returnedPacket))
-	{
-		printf("Failed to assign ID to device\n");
+		printf("Error: Could not read packet\n");
 		return 0;
 	}
 
-	return 1;
-}
+	JVSPacket outputPacket;
 
-int getSwitches(char *switches, int players, int bytes)
-{
-	JVSPacket packet;
-	JVSPacket returnedPacket;
-	packet.destination = DEVICE_ID;
+	int index = 0;
 
-	unsigned char data[] = {CMD_READ_SWITCHES, players, bytes};
-	packet.length = 3;
-	memcpy(packet.data, data, packet.length);
-	if (!runCommand(&packet, &returnedPacket))
+	while (index < inPacket.length)
 	{
-		printf("Failed to send switches question to device\n");
-		return 0;
-	}
-
-	int i = 2;
-	while (i < returnedPacket.length)
-	{
-		switches[i - 2] = returnedPacket.data[i];
-		i++;
-	}
-	return 1;
-}
-
-int getAnalogue(char *analogues, int channels)
-{
-	JVSPacket packet;
-	JVSPacket returnedPacket;
-	packet.destination = DEVICE_ID;
-
-	unsigned char data[] = {CMD_READ_ANALOGS, channels};
-	packet.length = 2;
-	memcpy(packet.data, data, packet.length);
-	if (!runCommand(&packet, &returnedPacket))
-	{
-		printf("Failed to send analogue question to device\n");
-		return 0;
-	}
-
-	int i = 2;
-	while (i < returnedPacket.length)
-	{
-		analogues[i - 2] = returnedPacket.data[i];
-		i++;
-	}
-	return 1;
-}
-
-int getName(char *name)
-{
-	JVSPacket packet;
-	JVSPacket returnedPacket;
-	packet.destination = DEVICE_ID;
-
-	unsigned char data[] = {CMD_REQUEST_ID};
-	packet.length = 1;
-	memcpy(packet.data, data, packet.length);
-	if (!runCommand(&packet, &returnedPacket))
-	{
-		printf("Failed to send get name question to device\n");
-		return 0;
-	}
-
-	int i = 2;
-	while (i < returnedPacket.length && returnedPacket.data[i] != '\0')
-	{
-		name[i - 2] = returnedPacket.data[i];
-		i++;
-	}
-	name[i - 2] = '\0';
-	return 1;
-}
-
-int getCapabilities(JVSCapabilities *capabilities)
-{
-	JVSPacket packet;
-	JVSPacket returnedPacket;
-	packet.destination = DEVICE_ID;
-
-	unsigned char data[] = {CMD_CAPABILITIES};
-	packet.length = 1;
-	memcpy(packet.data, data, packet.length);
-	if (!runCommand(&packet, &returnedPacket))
-	{
-		printf("Failed to send capabilities question to device\n");
-		return -1;
-	}
-
-	int i = 2;
-	int finished = 0;
-
-	while (!finished && i < returnedPacket.length)
-	{
-		switch (returnedPacket.data[i])
+		int size = 1;
+		switch (inPacket.data[index])
 		{
-		case CAP_END:
-			finished = 1;
+		case CMD_RESET:
+			size = 2;
+			deviceID = -1;
 			break;
-		case CAP_PLAYERS:
-			capabilities->players = returnedPacket.data[i + 1];
-			capabilities->switches = returnedPacket.data[i + 2];
+		case CMD_ASSIGN_ADDR:
+			size = 2;
+			deviceID = inPacket.data[index + 1];
+			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
+			outputPacket.length += 1;
 			break;
-		case CAP_ANALOG_IN:
-			capabilities->analogueInChannels = returnedPacket.data[i + 1];
-			capabilities->analogueInBits = returnedPacket.data[i + 2] ? returnedPacket.data[i + 2] : 8;
-			break;
-		case CAP_COINS:
-			capabilities->coins = returnedPacket.data[i + 1];
-			break;
-		case CAP_ROTARY:
-			capabilities->rotaryChannels = returnedPacket.data[i + 1];
-			break;
-		case CAP_KEYPAD:
-			capabilities->keypad = 1;
-			break;
-		case CAP_LIGHTGUN:
-			capabilities->gunXBits = returnedPacket.data[i + 1];
-			capabilities->gunYBits = returnedPacket.data[i + 2];
-			capabilities->gunChannels = returnedPacket.data[i + 3];
-			break;
-		case CAP_GPI:
-			capabilities->generalPurposeOutputs = returnedPacket.data[i + 1] << 8 | returnedPacket.data[i + 2];
-			break;
-		case CAP_CARD:
-			capabilities->card = returnedPacket.data[i + 1];
-			break;
-		case CAP_HOPPER:
-			capabilities->hopper = returnedPacket.data[i + 1];
-			break;
-		case CAP_GPO:
-			capabilities->generalPurposeOutputs = returnedPacket.data[i + 1];
-			break;
-		case CAP_ANALOG_OUT:
-			capabilities->analogueOutChannels = returnedPacket.data[i + 1];
-			break;
-		case CAP_DISPLAY:
-			capabilities->displayOutColumns = returnedPacket.data[i + 1];
-			capabilities->displayOutRows = returnedPacket.data[i + 2];
-			capabilities->displayOutEncodings = returnedPacket.data[i + 3];
-			break;
-		case CAP_BACKUP:
-			capabilities->backup = 1;
-			break;
+		default:
+			printf("Warning: This command is not properly supported\n");
 		}
-		i += 4;
-	}
-	return 1;
-}
-
-int runCommand(JVSPacket *packet, JVSPacket *returnedPacket)
-{
-
-	writePacket(packet);
-
-	int readPacketResponse = readPacket(returnedPacket);
-	if (readPacketResponse == -1)
-	{
-		printf("Timeout Error - The device did not reply in time\n");
-		return 0;
+		index += size;
 	}
 
-	if (returnedPacket->destination != BUS_MASTER)
-	{
-		printf("Destination Error - This packet is supposed to be for us but it's not\n");
-		return 0;
-	}
-
-	if (returnedPacket->data[0] != STATUS_SUCCESS)
-	{
-		printf("Status Error - Error with the device");
-		return 0;
-	}
-
-	if (returnedPacket->data[1] != REPORT_SUCCESS)
-	{
-		printf("Report Error - Error with this command in particular");
-		return 0;
-	}
 	usleep(10 * 1000);
+
+	outputPacket.destination = BUS_MASTER;
+	writePacket(&outputPacket);
+
 	return 1;
 }
 
@@ -243,20 +75,7 @@ int writeByte(unsigned char byte)
 int readPacket(JVSPacket *packet)
 {
 	unsigned char byte = 0;
-	int timeout = 5;
-	while (byte != SYNC && timeout > 0)
-	{
-		int n = readByte(&byte);
-		if (n == 0)
-		{
-			timeout -= 1;
-		}
-	}
-
-	if (timeout == 0)
-	{
-		return -1;
-	}
+	int n = readByte(&byte);
 
 	readByte(&packet->destination);
 	readByte(&packet->length);

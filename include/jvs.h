@@ -46,11 +46,11 @@ typedef struct
 } JVSCapabilities;
 
 int connectJVS();
-int setSerialAttributes(int fd, int speed);
 int readByte(unsigned char *byte);
 int writeByte(unsigned char byte);
 int readPacket(JVSPacket *packet);
 int writePacket(JVSPacket *packet);
-int runCommand(JVSPacket *packet, JVSPacket *returnedPacket);
+int processPacket();
+int setSerialAttributes(int fd, int speed);
 
 #endif // JVS_H_
