@@ -1,7 +1,7 @@
 #include "jvs.h"
 
 int serialIO = -1;
-char* devicePath = "/dev/ttyUSB0";
+char *devicePath = "/dev/ttyUSB0";
 int deviceID = -1;
 
 int connectJVS()
@@ -13,6 +13,8 @@ int connectJVS()
 	}
 
 	setSerialAttributes(serialIO, B115200);
+
+	setSyncPin(0); // Float Sync
 
 	return 1;
 }
@@ -39,12 +41,14 @@ int processPacket()
 		case CMD_RESET:
 			size = 2;
 			deviceID = -1;
+			setSyncPin(0);
 			break;
 		case CMD_ASSIGN_ADDR:
 			size = 2;
 			deviceID = inPacket.data[index + 1];
 			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
 			outputPacket.length += 1;
+			setSyncPin(1);
 			break;
 		default:
 			printf("Warning: This command is not properly supported\n");
@@ -160,5 +164,18 @@ int setSerialAttributes(int fd, int myBaud)
 
 	usleep(100 * 1000); // 10mS
 
+	return 0;
+}
+
+int setSyncPin(int a)
+{
+	if (a == 0)
+	{
+		// Float
+	}
+	else
+	{
+		// Ground
+	}
 	return 0;
 }

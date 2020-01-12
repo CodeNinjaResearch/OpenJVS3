@@ -51,6 +51,7 @@ int writeByte(unsigned char byte);
 int readPacket(JVSPacket *packet);
 int writePacket(JVSPacket *packet);
 int processPacket();
+int setSyncPin(int a);
 int setSerialAttributes(int fd, int speed);
 
 #endif // JVS_H_
