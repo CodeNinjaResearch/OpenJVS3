@@ -6,20 +6,31 @@ int main(int argc, char **argv)
 {
     printf("OpenJVS3 Development Version\n");
 
-    if (!connectJVS("/dev/ttyUSB0"))
+    /* Setup the IO we are trying to emulate */
+    JVSCapabilities capabilities;
+    capabilities.players = 2;
+    capabilities.switches = 8;
+
+    /* Setup the JVS Emulator with the RS485 path and capabilities */
+    if (!initJVS("/dev/ttyUSB0", &capabilities))
     {
         printf("Error: Couldn't connect to serial\n");
         return 1;
     }
 
-    while(running) {
-        if(!processPacket()) {
+    /* Process packets forever */
+    while (running)
+    {
+        if (!processPacket())
+        {
             printf("Error: Failed to process packet properly.");
             return 1;
         }
     }
 
-    if(!disconnectJVS()) {
+    /* Close the file pointer */
+    if (!disconnectJVS())
+    {
         printf("Error: Couldn't disconnect from serial\n");
         return 1;
     }

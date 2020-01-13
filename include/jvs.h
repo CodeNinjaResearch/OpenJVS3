@@ -45,11 +45,9 @@ typedef struct
     unsigned char backup;
 } JVSCapabilities;
 
-JVSCapabilities capabilities;
-
-int connectJVS(char *devicePath);
+int initJVS(char *devicePath, JVSCapabilities* capabilitiesSetup);
 int disconnectJVS();
-int writeCapabilities(JVSPacket *packet, JVSCapabilities* capabilities);
+int writeCapabilities(JVSPacket *packet);
 int readByte(unsigned char *byte);
 int writeByte(unsigned char byte);
 int readPacket(JVSPacket *packet);

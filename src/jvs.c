@@ -3,18 +3,18 @@
 int serialIO = -1;
 int deviceID = -1;
 int debugEnabled = 1;
+JVSCapabilities* capabilities;
 
-int connectJVS(char *devicePath)
+int initJVS(char *devicePath, JVSCapabilities* capabilitiesSetup)
 {
+	capabilities = capabilitiesSetup;
+
 	if ((serialIO = open(devicePath, O_RDWR | O_NOCTTY | O_SYNC)) < 0)
 	{
 		printf("Failed to open %s\n", devicePath);
 		return 0;
 	}
-
-	capabilities.players = 2;
-	capabilities.switches = 8;
-
+	
 	setSerialAttributes(serialIO, B115200);
 
 	setSyncPin(0); // Float Sync
@@ -27,7 +27,7 @@ int disconnectJVS()
 	return close(serialIO);
 }
 
-int writeCapabilities(JVSPacket *outputPacket, JVSCapabilities *capabilities)
+int writeCapabilities(JVSPacket *outputPacket)
 {
 	outputPacket->data[outputPacket->length] = STATUS_SUCCESS;
 	outputPacket->length += 1;
@@ -112,7 +112,7 @@ int processPacket()
 			break;
 		case CMD_CAPABILITIES:
 			debug("CMD_CAPABILITIES");
-			writeCapabilities(&outputPacket, &capabilities);
+			writeCapabilities(&outputPacket);
 			break;
 		default:
 			printf("Warning: This command is not properly supported\n");
