@@ -89,8 +89,8 @@ int processPacket()
 			debug("CMD_REQUEST_ID");
 			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
 			char *id = "OpenJVS Emulator;I/O BD JVS;837-13551;Ver1.00;98/10";
-			memcpy(&outputPacket.data[outputPacket.length + 1], id, strlen(id));
-			outputPacket.length += strlen(id) + 1;
+			memcpy(&outputPacket.data[outputPacket.length + 1], id, strlen(id) + 1);
+			outputPacket.length += strlen(id) + 2;
 			break;
 		case CMD_COMMAND_VERSION:
 			debug("CMD_COMMAND_VERSION");
