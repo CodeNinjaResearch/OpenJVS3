@@ -1,10 +1,10 @@
 #include "jvs.h"
 
 int serialIO = -1;
-char *devicePath = "/dev/ttyUSB0";
 int deviceID = -1;
+int debugEnabled = 1;
 
-int connectJVS()
+int connectJVS(char *devicePath)
 {
 	if ((serialIO = open(devicePath, O_RDWR | O_NOCTTY | O_SYNC)) < 0)
 	{
@@ -12,11 +12,44 @@ int connectJVS()
 		return 0;
 	}
 
+	capabilities.players = 2;
+	capabilities.switches = 8;
+
 	setSerialAttributes(serialIO, B115200);
 
 	setSyncPin(0); // Float Sync
 
 	return 1;
+}
+
+int disconnectJVS()
+{
+	return close(serialIO);
+}
+
+int writeCapabilities(JVSPacket *outputPacket, JVSCapabilities *capabilities)
+{
+	outputPacket->data[outputPacket->length] = STATUS_SUCCESS;
+	outputPacket->length += 1;
+
+	if (capabilities->players > 0)
+	{
+		outputPacket->data[outputPacket->length + 1] = CAP_PLAYERS;
+		outputPacket->data[outputPacket->length + 2] = capabilities->players;
+		outputPacket->data[outputPacket->length + 3] = capabilities->switches;
+		outputPacket->length += 3;
+	}
+
+	outputPacket->data[outputPacket->length] = CAP_END;
+	outputPacket->length += 1;
+}
+
+void debug(char *string)
+{
+	if (debugEnabled)
+	{
+		printf("Debug: %s\n", string);
+	}
 }
 
 int processPacket()
@@ -31,7 +64,7 @@ int processPacket()
 
 	JVSPacket outputPacket;
 
-	int index = 0;
+	int index = 2;
 
 	while (index < inPacket.length)
 	{
@@ -39,16 +72,47 @@ int processPacket()
 		switch (inPacket.data[index])
 		{
 		case CMD_RESET:
+			debug("CMD_RESET");
 			size = 2;
 			deviceID = -1;
 			setSyncPin(0);
 			break;
 		case CMD_ASSIGN_ADDR:
+			debug("CMD_ASSIGN_ADDR");
 			size = 2;
 			deviceID = inPacket.data[index + 1];
 			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
 			outputPacket.length += 1;
 			setSyncPin(1);
+			break;
+		case CMD_REQUEST_ID:
+			debug("CMD_REQUEST_ID");
+			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
+			char *id = "OpenJVS Emulator;I/O BD JVS;837-13551;Ver1.00;98/10";
+			memcpy(&outputPacket.data[outputPacket.length + 1], id, strlen(id));
+			outputPacket.length += strlen(id) + 1;
+			break;
+		case CMD_COMMAND_VERSION:
+			debug("CMD_COMMAND_VERSION");
+			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
+			outputPacket.data[outputPacket.length + 1] = 0x11;
+			outputPacket.length += 2;
+			break;
+		case CMD_JVS_VERSION:
+			debug("CMD_JVS_VERSION");
+			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
+			outputPacket.data[outputPacket.length + 1] = 0x20;
+			outputPacket.length += 2;
+			break;
+		case CMD_COMMS_VERSION:
+			debug("CMD_COMMS_VERSION");
+			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
+			outputPacket.data[outputPacket.length + 1] = 0x10;
+			outputPacket.length += 2;
+			break;
+		case CMD_CAPABILITIES:
+			debug("CMD_CAPABILITIES");
+			writeCapabilities(&outputPacket, &capabilities);
 			break;
 		default:
 			printf("Warning: This command is not properly supported\n");
@@ -59,9 +123,8 @@ int processPacket()
 	usleep(10 * 1000);
 
 	outputPacket.destination = BUS_MASTER;
-	writePacket(&outputPacket);
 
-	return 1;
+	return writePacket(&outputPacket);
 }
 
 int readByte(unsigned char *byte)
@@ -101,7 +164,7 @@ int readPacket(JVSPacket *packet)
 
 	if (checksumReceived != checksumComputed)
 	{
-		printf("Checksum Error - The checksum is not correct\n");
+		printf("Error: The checksum is not correct\n");
 		return 0;
 	}
 
@@ -171,11 +234,11 @@ int setSyncPin(int a)
 {
 	if (a == 0)
 	{
-		// Float
+		debug("Floated sync pin");
 	}
 	else
 	{
-		// Ground
+		debug("Grounded sync pin");
 	}
 	return 0;
 }

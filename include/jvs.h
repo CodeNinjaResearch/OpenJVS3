@@ -45,7 +45,11 @@ typedef struct
     unsigned char backup;
 } JVSCapabilities;
 
-int connectJVS();
+JVSCapabilities capabilities;
+
+int connectJVS(char *devicePath);
+int disconnectJVS();
+int writeCapabilities(JVSPacket *packet, JVSCapabilities* capabilities);
 int readByte(unsigned char *byte);
 int writeByte(unsigned char byte);
 int readPacket(JVSPacket *packet);
@@ -53,5 +57,6 @@ int writePacket(JVSPacket *packet);
 int processPacket();
 int setSyncPin(int a);
 int setSerialAttributes(int fd, int speed);
+void debug(char *string);
 
 #endif // JVS_H_
