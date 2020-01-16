@@ -42,6 +42,8 @@ int writeCapabilities(JVSPacket *outputPacket)
 
 	outputPacket->data[outputPacket->length] = CAP_END;
 	outputPacket->length += 1;
+
+	return 1;
 }
 
 void debug(char *string)
