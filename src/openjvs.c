@@ -8,11 +8,14 @@ int main(int argc, char **argv)
 
     /* Setup the IO we are trying to emulate */
     JVSCapabilities capabilities;
+    capabilities.name = "OpenJVS3 Emulator;I/O BD JVS;837-13551;Ver1.00;98/10";
     capabilities.players = 2;
     capabilities.switches = 8;
+    capabilities.analogueInBits = 8;
+    capabilities.analogueInChannels = 8;
 
     /* Setup the JVS Emulator with the RS485 path and capabilities */
-    if (!initJVS("/dev/ttyUSB0", &capabilities))
+    if (!initJVS("/dev/ttys003", &capabilities))
     {
         printf("Error: Couldn't connect to serial\n");
         return 1;

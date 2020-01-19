@@ -3,9 +3,9 @@
 int serialIO = -1;
 int deviceID = -1;
 int debugEnabled = 1;
-JVSCapabilities* capabilities;
+JVSCapabilities *capabilities;
 
-int initJVS(char *devicePath, JVSCapabilities* capabilitiesSetup)
+int initJVS(char *devicePath, JVSCapabilities *capabilitiesSetup)
 {
 	capabilities = capabilitiesSetup;
 
@@ -14,8 +14,12 @@ int initJVS(char *devicePath, JVSCapabilities* capabilitiesSetup)
 		printf("Failed to open %s\n", devicePath);
 		return 0;
 	}
-	
+
 	setSerialAttributes(serialIO, B115200);
+
+	sleep(2); //required to make flush work, for some reason
+
+	tcflush(serialIO, TCIOFLUSH);
 
 	setSyncPin(0); // Float Sync
 
@@ -34,9 +38,17 @@ int writeCapabilities(JVSPacket *outputPacket)
 
 	if (capabilities->players > 0)
 	{
-		outputPacket->data[outputPacket->length + 1] = CAP_PLAYERS;
-		outputPacket->data[outputPacket->length + 2] = capabilities->players;
-		outputPacket->data[outputPacket->length + 3] = capabilities->switches;
+		outputPacket->data[outputPacket->length] = CAP_PLAYERS;
+		outputPacket->data[outputPacket->length + 1] = capabilities->players;
+		outputPacket->data[outputPacket->length + 2] = capabilities->switches;
+		outputPacket->length += 3;
+	}
+
+	if (capabilities->analogueInChannels > 0)
+	{
+		outputPacket->data[outputPacket->length] = CAP_ANALOG_IN;
+		outputPacket->data[outputPacket->length + 1] = capabilities->analogueInChannels;
+		outputPacket->data[outputPacket->length + 2] = capabilities->analogueInBits;
 		outputPacket->length += 3;
 	}
 
@@ -65,12 +77,17 @@ int processPacket()
 	}
 
 	JVSPacket outputPacket;
+	outputPacket.length = 0;
+	outputPacket.destination = BUS_MASTER;
 
-	int index = 2;
+	int index = 0;
 
-	while (index < inPacket.length)
+	while (index < inPacket.length - 1)
 	{
 		int size = 1;
+		printf("inPacket.length %d\n", inPacket.length);
+		printf("index %d\n", index);
+		printf("Packet Data: %d\n", inPacket.data[index]);
 		switch (inPacket.data[index])
 		{
 		case CMD_RESET:
@@ -90,9 +107,8 @@ int processPacket()
 		case CMD_REQUEST_ID:
 			debug("CMD_REQUEST_ID");
 			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
-			char *id = "OpenJVS Emulator;I/O BD JVS;837-13551;Ver1.00;98/10";
-			memcpy(&outputPacket.data[outputPacket.length + 1], id, strlen(id) + 1);
-			outputPacket.length += strlen(id) + 2;
+			memcpy(&outputPacket.data[outputPacket.length + 1], capabilities->name, strlen(capabilities->name) + 1);
+			outputPacket.length += strlen(capabilities->name) + 2;
 			break;
 		case CMD_COMMAND_VERSION:
 			debug("CMD_COMMAND_VERSION");
@@ -117,7 +133,7 @@ int processPacket()
 			writeCapabilities(&outputPacket);
 			break;
 		default:
-			printf("Warning: This command is not properly supported\n");
+			printf("Warning: This command is not properly supported [%d]\n", inPacket.data[index]);
 		}
 		index += size;
 	}
@@ -145,9 +161,14 @@ int readPacket(JVSPacket *packet)
 {
 	unsigned char byte = 0;
 	int n = readByte(&byte);
+	while(byte != SYNC || n < 1) {
+		n = readByte(&byte);
+	}
 
 	readByte(&packet->destination);
+	printf("Dest: %d\n", packet->destination);
 	readByte(&packet->length);
+	printf("Length: %d\n", packet->length);
 
 	unsigned char checksumComputed = packet->destination + packet->length;
 
@@ -159,6 +180,7 @@ int readPacket(JVSPacket *packet)
 			readByte(&packet->data[i]);
 			packet->data[i] += 1;
 		}
+		printf("Data: %d\n", packet->data[i]);
 		checksumComputed = (checksumComputed + packet->data[i]) & 0xFF;
 	}
 	unsigned char checksumReceived = 0;
@@ -177,8 +199,9 @@ int writePacket(JVSPacket *packet)
 {
 	writeByte(SYNC);
 	writeByte(packet->destination);
-	writeByte(packet->length + 1);
-	unsigned char checksum = packet->destination + packet->length + 1;
+	writeByte(packet->length + 2);
+	writeByte(STATUS_SUCCESS);
+	unsigned char checksum = packet->destination + packet->length + 2 + STATUS_SUCCESS;
 	for (int i = 0; i < packet->length; i++)
 	{
 		if (packet->data[i] == SYNC || packet->data[i] == ESCAPE)

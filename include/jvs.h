@@ -43,6 +43,7 @@ typedef struct
     unsigned char displayOutColumns;
     unsigned char displayOutEncodings;
     unsigned char backup;
+    char* name;
 } JVSCapabilities;
 
 int initJVS(char *devicePath, JVSCapabilities* capabilitiesSetup);
