@@ -16,6 +16,7 @@ int initJVS(char *devicePath, JVSCapabilities *capabilitiesSetup)
 	}
 
 	setSerialAttributes(serialIO, B115200);
+	setSerialLowLatency(serialIO);
 
 	usleep(100 * 1000); //required to make flush work, for some reason
 
@@ -253,15 +254,36 @@ int setSerialAttributes(int fd, int myBaud)
 	return 0;
 }
 
+/* Sets the serial port to low latency mode */
+int setSerialLowLatency(int fd)
+{
+	struct serial_struct serial_settings;
+
+	if (ioctl(fd, TIOCGSERIAL, &serial_settings) < 0)
+	{
+		debug("Serial Error - Failed to read serial settings for low latency mode");
+		return 0;
+	}
+
+	serial_settings.flags |= ASYNC_LOW_LATENCY;
+	if (ioctl(fd, TIOCSSERIAL, &serial_settings) < 0)
+	{
+		debug("Serial Error - Failed to write serial settings for low latency mode");
+		return 0;
+	}
+	return 1;
+}
+
+
 int setSyncPin(int a)
 {
 	if (a == 0)
 	{
-		debug("Floated sync pin");
+		debug("FLOATED SYNC PIN");
 	}
 	else
 	{
-		debug("Grounded sync pin");
+		debug("GROUNDED SYNC PIN");
 	}
 	return 0;
 }

@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>
+#include <linux/serial.h>
 
 #include "constants.h"
 
@@ -54,8 +55,9 @@ int writeByte(char byte);
 int readPacket(JVSPacket *packet);
 int writePacket(JVSPacket *packet);
 int processPacket();
-int setSyncPin(int a);
 int setSerialAttributes(int fd, int speed);
+int setSerialLowLatency(int fd);
+int setSyncPin(int a);
 void debug(char *string);
 
 #endif // JVS_H_
