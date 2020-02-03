@@ -1,6 +1,7 @@
 #ifndef CONSTANTS_H_
 #define CONSTANTS_H_
 
+#define MAX_STATE_SIZE 16
 #define MAX_PACKET_SIZE 1024
 #define DEVICE_ID 0x01
 

@@ -4,6 +4,7 @@ int serialIO = -1;
 int deviceID = -1;
 int debugEnabled = 1;
 JVSCapabilities *capabilities;
+JVSState state;
 
 int initJVS(char *devicePath, JVSCapabilities *capabilitiesSetup)
 {
@@ -15,6 +16,10 @@ int initJVS(char *devicePath, JVSCapabilities *capabilitiesSetup)
 		return 0;
 	}
 
+	/* Init the Virtual IO */
+	initIO();
+
+	/* Setup the serial connection */
 	setSerialAttributes(serialIO, B115200);
 	setSerialLowLatency(serialIO);
 
@@ -42,7 +47,8 @@ int writeCapabilities(JVSPacket *outputPacket)
 		outputPacket->data[outputPacket->length] = CAP_PLAYERS;
 		outputPacket->data[outputPacket->length + 1] = capabilities->players;
 		outputPacket->data[outputPacket->length + 2] = capabilities->switches;
-		outputPacket->length += 3;
+		outputPacket->data[outputPacket->length + 3] = CAP_END;
+		outputPacket->length += 4;
 	}
 
 	if (capabilities->analogueInChannels > 0)
@@ -50,7 +56,26 @@ int writeCapabilities(JVSPacket *outputPacket)
 		outputPacket->data[outputPacket->length] = CAP_ANALOG_IN;
 		outputPacket->data[outputPacket->length + 1] = capabilities->analogueInChannels;
 		outputPacket->data[outputPacket->length + 2] = capabilities->analogueInBits;
-		outputPacket->length += 3;
+		outputPacket->data[outputPacket->length + 3] = CAP_END;
+		outputPacket->length += 4;
+	}
+
+	if (capabilities->rotaryChannels > 0)
+	{
+		outputPacket->data[outputPacket->length] = CAP_ROTARY;
+		outputPacket->data[outputPacket->length + 1] = capabilities->rotaryChannels;
+		outputPacket->data[outputPacket->length + 2] = 0x00;
+		outputPacket->data[outputPacket->length + 3] = CAP_END;
+		outputPacket->length += 4;
+	}
+
+	if (capabilities->coins > 0)
+	{
+		outputPacket->data[outputPacket->length] = CAP_COINS;
+		outputPacket->data[outputPacket->length + 1] = capabilities->coins;
+		outputPacket->data[outputPacket->length + 2] = 0x00;
+		outputPacket->data[outputPacket->length + 3] = CAP_END;
+		outputPacket->length += 4;
 	}
 
 	outputPacket->data[outputPacket->length] = CAP_END;
@@ -130,8 +155,56 @@ int processPacket()
 			debug("CMD_CAPABILITIES");
 			writeCapabilities(&outputPacket);
 			break;
+		case CMD_READ_SWITCHES:
+			debug("CMD_READSWITCHES");
+			size = 3;
+			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
+			outputPacket.length += 1;
+			for (int i = 0; i <= inPacket.data[index + 1]; i++)
+			{
+				for (int j = 0; j < inPacket.data[index + 2]; j++)
+				{
+					outputPacket.data[outputPacket.length] = (state.inputSwitch[i][j]);
+					outputPacket.length += 1;
+				}
+			}
+			break;
+		case CMD_READ_COINS:
+			debug("CMD_READ_COINS\n");
+			size = 2;
+			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
+			outputPacket.data[outputPacket.length + 1] = 0x00;
+			outputPacket.data[outputPacket.length + 2] = state.coinCount;
+			outputPacket.data[outputPacket.length + 3] = 0x00;
+			outputPacket.data[outputPacket.length + 4] = 0x00;
+			outputPacket.length += 5;
+			break;
+		case CMD_READ_ANALOGS:
+			debug("CMD_READ_ANALOGS\n");
+			size = 2;
+			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
+			outputPacket.length += 1;
+			for (int i = 0; i < inPacket.data[index + 1]; i++)
+			{
+				outputPacket.data[outputPacket.length] = state.analogueChannel[i];
+				outputPacket.data[outputPacket.length + 1] = 0x00;
+				outputPacket.length += 2;
+			}
+			break;
+		case CMD_READ_ROTARY:
+			debug("CMD_READ_ROTARY\n");
+			size = 2;
+			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
+			outputPacket.length += 1;
+			for (int i = 0; i < inPacket.data[index + 1]; i++)
+			{
+				outputPacket.data[outputPacket.length] = state.rotaryChannel[i];
+				outputPacket.data[outputPacket.length + 1] = 0x00;
+				outputPacket.length += 2;
+			}
+			break;
 		default:
-			printf("Warning: This command is not properly supported [%d]\n", inPacket.data[index]);
+			printf("Warning: This command is not properly supported [0x%02hhX]\n", inPacket.data[index]);
 		}
 		index += size;
 	}
@@ -157,7 +230,8 @@ int readPacket(JVSPacket *packet)
 {
 	unsigned char byte = 0;
 	int n = readByte(&byte);
-	while(byte != SYNC || n < 1) {
+	while (byte != SYNC || n < 1)
+	{
 		n = readByte(&byte);
 	}
 
@@ -191,7 +265,8 @@ int readPacket(JVSPacket *packet)
 int writePacket(JVSPacket *packet)
 {
 	/* Don't return anything if there isn't anything to write! */
-	if(packet->length < 1) {
+	if (packet->length < 1)
+	{
 		return 1;
 	}
 
@@ -274,7 +349,6 @@ int setSerialLowLatency(int fd)
 	return 1;
 }
 
-
 int setSyncPin(int a)
 {
 	if (a == 0)
@@ -285,5 +359,83 @@ int setSyncPin(int a)
 	{
 		debug("GROUNDED SYNC PIN");
 	}
+	return 0;
+}
+
+int initIO() {
+	div_t switchDiv = div(capabilities->switches, 8);
+	int switchBytes = switchDiv.quot + (switchDiv.rem ? 1 : 0);
+	for (int players = 0; players < (capabilities->players + 1); players++)
+	{
+		for (int switches = 0; switches < switchBytes; switches++)
+		{
+			state.inputSwitch[players][switches] = 0x00;
+		}
+	}
+
+	for (int analogueChannels = 0; analogueChannels < capabilities->analogueInChannels; analogueChannels++)
+	{
+		state.analogueChannel[analogueChannels] = 0;
+	}
+
+	for (int rotaryChannels = 0; rotaryChannels < capabilities->rotaryChannels; rotaryChannels++)
+	{
+		state.rotaryChannel[rotaryChannels] = 0;
+	}
+
+	state.coinCount = 0;
+}
+
+int setSwitch(int player, int switchNumber, int value)
+{
+	if (player > capabilities->players)
+	{
+		printf("Error - That player does not exist.\n");
+		return 0;
+	}
+
+	if (switchNumber >= capabilities->switches)
+	{
+		printf("Error - That switch does not exist.\n");
+		return 0;
+	}
+
+	div_t switchDiv = div(switchNumber, 8);
+	int switchBytes = switchDiv.quot + (switchDiv.rem ? 1 : 0);
+
+	if (value)
+	{
+		state.inputSwitch[player][switchDiv.quot] |= 1 << switchDiv.rem;
+	}
+	else
+	{
+		state.inputSwitch[player][switchDiv.quot] &= ~(1 << switchDiv.rem);
+	}
+
+	return 1;
+}
+
+int incrementCoin()
+{
+	state.coinCount++;
+	return 1;
+}
+int setAnalogue(int channel, int value)
+{
+	if (channel < capabilities->analogueInChannels)
+	{
+		state.analogueChannel[channel] = value;
+		return 1;
+	}
+	return 0;
+}
+int setRotary(int channel, int value)
+{
+	if (channel < capabilities->rotaryChannels)
+	{
+		state.rotaryChannel[channel] = value;
+		return 1;
+	}
+
 	return 0;
 }
