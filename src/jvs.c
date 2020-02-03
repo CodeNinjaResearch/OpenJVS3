@@ -17,7 +17,7 @@ int initJVS(char *devicePath, JVSCapabilities *capabilitiesSetup)
 
 	setSerialAttributes(serialIO, B115200);
 
-	sleep(2); //required to make flush work, for some reason
+	usleep(100 * 1000); //required to make flush work, for some reason
 
 	tcflush(serialIO, TCIOFLUSH);
 
@@ -85,9 +85,6 @@ int processPacket()
 	while (index < inPacket.length - 1)
 	{
 		int size = 1;
-		printf("inPacket.length %d\n", inPacket.length);
-		printf("index %d\n", index);
-		printf("Packet Data: %d\n", inPacket.data[index]);
 		switch (inPacket.data[index])
 		{
 		case CMD_RESET:
@@ -138,19 +135,17 @@ int processPacket()
 		index += size;
 	}
 
-	usleep(10 * 1000);
-
 	outputPacket.destination = BUS_MASTER;
 
 	return writePacket(&outputPacket);
 }
 
-int readByte(unsigned char *byte)
+int readByte(char *byte)
 {
 	return read(serialIO, byte, 1);
 }
 
-int writeByte(unsigned char byte)
+int writeByte(char byte)
 {
 	char buffer[] = {0x00};
 	buffer[0] = byte;
@@ -166,9 +161,7 @@ int readPacket(JVSPacket *packet)
 	}
 
 	readByte(&packet->destination);
-	printf("Dest: %d\n", packet->destination);
 	readByte(&packet->length);
-	printf("Length: %d\n", packet->length);
 
 	unsigned char checksumComputed = packet->destination + packet->length;
 
@@ -180,7 +173,6 @@ int readPacket(JVSPacket *packet)
 			readByte(&packet->data[i]);
 			packet->data[i] += 1;
 		}
-		printf("Data: %d\n", packet->data[i]);
 		checksumComputed = (checksumComputed + packet->data[i]) & 0xFF;
 	}
 	unsigned char checksumReceived = 0;
@@ -197,9 +189,15 @@ int readPacket(JVSPacket *packet)
 
 int writePacket(JVSPacket *packet)
 {
+	/* Don't return anything if there isn't anything to write! */
+	if(packet->length < 1) {
+		return 1;
+	}
+
 	writeByte(SYNC);
 	writeByte(packet->destination);
 	writeByte(packet->length + 2);
+
 	writeByte(STATUS_SUCCESS);
 	unsigned char checksum = packet->destination + packet->length + 2 + STATUS_SUCCESS;
 	for (int i = 0; i < packet->length; i++)
