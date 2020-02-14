@@ -45,9 +45,6 @@ int setAnalogue(int channel, int value);
 int setRotary(int channel, int value);
 
 JVSCapabilities *getCapabilities();
-char getCoins();
-char getAnalogue(int channel);
-char getRotary(int channel);
-char **getSwitches();
+JVSState *getState();
 
 #endif // DEVICE_H_

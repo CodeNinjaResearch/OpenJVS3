@@ -91,22 +91,7 @@ int setRotary(int channel, int value)
 	return 0;
 }
 
-char getCoins()
+JVSState* getState()
 {
-	return state.coinCount;
-}
-
-char getAnalogue(int channel)
-{
-	return state.analogueChannel[channel];
-}
-
-char getRotary(int channel)
-{
-	return state.rotaryChannel[channel];
-}
-
-char **getSwitches()
-{
-	return (char **)state.inputSwitch;
+	return &state;
 }

@@ -1,7 +1,7 @@
 #include "jvs.h"
 
 int deviceID = -1;
-int debugEnabled = 1;
+int debugEnabled = 0;
 
 int initJVS(char *devicePath, JVSCapabilities *capabilitiesSetup)
 {
@@ -19,42 +19,42 @@ int disconnectJVS()
 	return closeDevice();
 }
 
-int writeCapabilities(JVSPacket *outputPacket)
+int writeCapabilities(JVSPacket *outputPacket, JVSCapabilities* capabilities)
 {
 	outputPacket->data[outputPacket->length] = STATUS_SUCCESS;
 	outputPacket->length += 1;
 
-	if (getCapabilities()->players > 0)
+	if (capabilities->players > 0)
 	{
 		outputPacket->data[outputPacket->length] = CAP_PLAYERS;
-		outputPacket->data[outputPacket->length + 1] = getCapabilities()->players;
-		outputPacket->data[outputPacket->length + 2] = getCapabilities()->switches;
+		outputPacket->data[outputPacket->length + 1] = capabilities->players;
+		outputPacket->data[outputPacket->length + 2] = capabilities->switches;
 		outputPacket->data[outputPacket->length + 3] = CAP_END;
 		outputPacket->length += 4;
 	}
 
-	if (getCapabilities()->analogueInChannels > 0)
+	if (capabilities->analogueInChannels > 0)
 	{
 		outputPacket->data[outputPacket->length] = CAP_ANALOG_IN;
-		outputPacket->data[outputPacket->length + 1] = getCapabilities()->analogueInChannels;
-		outputPacket->data[outputPacket->length + 2] = getCapabilities()->analogueInBits;
+		outputPacket->data[outputPacket->length + 1] = capabilities->analogueInChannels;
+		outputPacket->data[outputPacket->length + 2] = capabilities->analogueInBits;
 		outputPacket->data[outputPacket->length + 3] = CAP_END;
 		outputPacket->length += 4;
 	}
 
-	if (getCapabilities()->rotaryChannels > 0)
+	if (capabilities->rotaryChannels > 0)
 	{
 		outputPacket->data[outputPacket->length] = CAP_ROTARY;
-		outputPacket->data[outputPacket->length + 1] = getCapabilities()->rotaryChannels;
+		outputPacket->data[outputPacket->length + 1] = capabilities->rotaryChannels;
 		outputPacket->data[outputPacket->length + 2] = 0x00;
 		outputPacket->data[outputPacket->length + 3] = CAP_END;
 		outputPacket->length += 4;
 	}
 
-	if (getCapabilities()->coins > 0)
+	if (capabilities->coins > 0)
 	{
 		outputPacket->data[outputPacket->length] = CAP_COINS;
-		outputPacket->data[outputPacket->length + 1] = getCapabilities()->coins;
+		outputPacket->data[outputPacket->length + 1] = capabilities->coins;
 		outputPacket->data[outputPacket->length + 2] = 0x00;
 		outputPacket->data[outputPacket->length + 3] = CAP_END;
 		outputPacket->length += 4;
@@ -76,6 +76,9 @@ void debug(char *string)
 
 int processPacket()
 {
+	JVSState* state = getState();
+	JVSCapabilities* capabilities = getCapabilities();
+
 	JVSPacket inPacket;
 
 	if (!readPacket(&inPacket))
@@ -112,8 +115,8 @@ int processPacket()
 		case CMD_REQUEST_ID:
 			debug("CMD_REQUEST_ID");
 			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
-			memcpy(&outputPacket.data[outputPacket.length + 1], getCapabilities()->name, strlen(getCapabilities()->name) + 1);
-			outputPacket.length += strlen(getCapabilities()->name) + 2;
+			memcpy(&outputPacket.data[outputPacket.length + 1], capabilities->name, strlen(capabilities->name) + 1);
+			outputPacket.length += strlen(capabilities->name) + 2;
 			break;
 		case CMD_COMMAND_VERSION:
 			debug("CMD_COMMAND_VERSION");
@@ -135,19 +138,18 @@ int processPacket()
 			break;
 		case CMD_CAPABILITIES:
 			debug("CMD_CAPABILITIES");
-			writeCapabilities(&outputPacket);
+			writeCapabilities(&outputPacket, capabilities);
 			break;
 		case CMD_READ_SWITCHES:
 			debug("CMD_READSWITCHES");
 			size = 3;
 			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
 			outputPacket.length += 1;
-			char** switches = getSwitches();
 			for (int i = 0; i <= inPacket.data[index + 1]; i++)
 			{
 				for (int j = 0; j < inPacket.data[index + 2]; j++)
 				{
-					outputPacket.data[outputPacket.length] = (switches[i][j]);
+					outputPacket.data[outputPacket.length] = (state->inputSwitch[i][j]);
 					outputPacket.length += 1;
 				}
 			}
@@ -157,7 +159,7 @@ int processPacket()
 			size = 2;
 			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
 			outputPacket.data[outputPacket.length + 1] = 0x00;
-			outputPacket.data[outputPacket.length + 2] = getCoins();
+			outputPacket.data[outputPacket.length + 2] = state->coinCount;
 			outputPacket.data[outputPacket.length + 3] = 0x00;
 			outputPacket.data[outputPacket.length + 4] = 0x00;
 			outputPacket.length += 5;
@@ -169,7 +171,7 @@ int processPacket()
 			outputPacket.length += 1;
 			for (int i = 0; i < inPacket.data[index + 1]; i++)
 			{
-				outputPacket.data[outputPacket.length] = getAnalogue(i);
+				outputPacket.data[outputPacket.length] = state->analogueChannel[i];
 				outputPacket.data[outputPacket.length + 1] = 0x00;
 				outputPacket.length += 2;
 			}
@@ -181,7 +183,7 @@ int processPacket()
 			outputPacket.length += 1;
 			for (int i = 0; i < inPacket.data[index + 1]; i++)
 			{
-				outputPacket.data[outputPacket.length] = getRotary(i);
+				outputPacket.data[outputPacket.length] = state->rotaryChannel[i];
 				outputPacket.data[outputPacket.length + 1] = 0x00;
 				outputPacket.length += 2;
 			}

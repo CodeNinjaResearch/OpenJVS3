@@ -27,7 +27,7 @@ typedef struct
 
 int initJVS(char *devicePath, JVSCapabilities* capabilitiesSetup);
 int disconnectJVS();
-int writeCapabilities(JVSPacket *packet);
+int writeCapabilities(JVSPacket *outputPacket, JVSCapabilities* capabilities);
 int readPacket(JVSPacket *packet);
 int writePacket(JVSPacket *packet);
 int processPacket();
