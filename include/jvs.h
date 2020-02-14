@@ -24,10 +24,9 @@ typedef struct
     unsigned char data[MAX_PACKET_SIZE];
 } JVSPacket;
 
-
-int initJVS(char *devicePath, JVSCapabilities* capabilitiesSetup);
+int initJVS(char *devicePath, JVSCapabilities *capabilitiesSetup);
 int disconnectJVS();
-int writeCapabilities(JVSPacket *outputPacket, JVSCapabilities* capabilities);
+int writeCapabilities(JVSPacket *outputPacket, JVSCapabilities *capabilities);
 int readPacket(JVSPacket *packet);
 int writePacket(JVSPacket *packet);
 int processPacket();

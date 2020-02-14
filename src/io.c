@@ -91,7 +91,7 @@ int setRotary(int channel, int value)
 	return 0;
 }
 
-JVSState* getState()
+JVSState *getState()
 {
 	return &state;
 }

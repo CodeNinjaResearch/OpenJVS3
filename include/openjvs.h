@@ -5,6 +5,6 @@
 
 #include "jvs.h"
 
-int main(int argc, char** argv);
+int main(int argc, char **argv);
 
 #endif // OPENJVS_H_

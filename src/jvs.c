@@ -19,7 +19,7 @@ int disconnectJVS()
 	return closeDevice();
 }
 
-int writeCapabilities(JVSPacket *outputPacket, JVSCapabilities* capabilities)
+int writeCapabilities(JVSPacket *outputPacket, JVSCapabilities *capabilities)
 {
 	outputPacket->data[outputPacket->length] = STATUS_SUCCESS;
 	outputPacket->length += 1;
@@ -76,8 +76,8 @@ void debug(char *string)
 
 int processPacket()
 {
-	JVSState* state = getState();
-	JVSCapabilities* capabilities = getCapabilities();
+	JVSState *state = getState();
+	JVSCapabilities *capabilities = getCapabilities();
 
 	JVSPacket inPacket;
 
@@ -265,6 +265,3 @@ int writePacket(JVSPacket *packet)
 	writeByte(checksum);
 	return 1;
 }
-
-
-
