@@ -17,7 +17,7 @@ int main(int argc, char **argv)
     capabilities.coins = 1;
 
     /* Setup the JVS Emulator with the RS485 path and capabilities */
-    if (!initJVS("/dev/ttyUSB0", &capabilities))
+    if (!initJVS("/dev/ttyS10", &capabilities))
     {
         printf("Error: Couldn't connect to serial\n");
         return 1;

@@ -108,5 +108,5 @@ char getRotary(int channel)
 
 char **getSwitches()
 {
-	return state.inputSwitch;
+	return (char **)state.inputSwitch;
 }

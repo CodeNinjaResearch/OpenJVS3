@@ -83,14 +83,14 @@ int setSerialLowLatency(int fd)
 
 	if (ioctl(fd, TIOCGSERIAL, &serial_settings) < 0)
 	{
-		debug("Serial Error - Failed to read serial settings for low latency mode");
+		printf("Serial Error - Failed to read serial settings for low latency mode");
 		return 0;
 	}
 
 	serial_settings.flags |= ASYNC_LOW_LATENCY;
 	if (ioctl(fd, TIOCSSERIAL, &serial_settings) < 0)
 	{
-		debug("Serial Error - Failed to write serial settings for low latency mode");
+		printf("Serial Error - Failed to write serial settings for low latency mode");
 		return 0;
 	}
 	return 1;
@@ -100,11 +100,11 @@ int setSyncPin(int a)
 {
 	if (a == 0)
 	{
-		debug("FLOATED SYNC PIN");
+		printf("FLOATED SYNC PIN");
 	}
 	else
 	{
-		debug("GROUNDED SYNC PIN");
+		printf("GROUNDED SYNC PIN");
 	}
 	return 0;
 }
