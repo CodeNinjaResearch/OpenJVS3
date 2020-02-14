@@ -11,13 +11,12 @@ sudo apt install git build-essential
 git clone https://github.com/bobbydilley/OpenJVS3
 cd OpenJVS3
 make
-sudo make install
 ```
 
 ## Usage
 
-OpenJVS3 can be run from the command line by typing the executable name. It will start up and attempt to connect to all known input devices.
+OpenJVS3 can be run from the command line by typing the executable name and it will start emulating the specific IO defined in `openjvs.c`.
 
 ```
-openjvs3
+sudo ./bin/openjvs
 ```
