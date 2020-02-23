@@ -143,6 +143,8 @@ void *deviceThread(void *_args)
   {
     if (read(m.device_fd, &event, sizeof event) > 0)
     {
+    controlPrintStatus();
+
       switch (event.type)
       {
       case EV_ABS:

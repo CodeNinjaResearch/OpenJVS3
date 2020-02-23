@@ -6,6 +6,7 @@
 
 #include "jvs.h"
 #include "input.h"
+#include "io.h"
 
 int main(int argc, char **argv);
 void handle_sigint(int sig);

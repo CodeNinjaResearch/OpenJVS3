@@ -95,3 +95,46 @@ JVSState *getState()
 {
 	return &state;
 }
+
+void controlPrintStatus()
+{
+    /* Print Buttons */
+    for (int player = 0; player < getCapabilities()->players + 1; player++)
+    {
+        if (player == 0)
+        {
+            printf("System:\n\t");
+        }
+        else
+        {
+            printf("Player %d:\n\t", player);
+        }
+        for (int channel = 0; channel < (getCapabilities()->switches + 7) / 8; channel++)
+        {
+            for (int bit = 7; 0 <= bit; bit--)
+            {
+                printf("%d ", (getState()->inputSwitch[player][channel] >> bit) & 0x01);
+            }
+        }
+        printf("\n");
+    }
+
+    /* Print Analogue Count */
+    printf("Analogue:\n\t");
+    for (int channel = 0; channel < getCapabilities()->analogueInChannels; channel++)
+    {
+        printf("%d ", (unsigned char) getState()->analogueChannel[channel]);
+    }
+    printf("\n");
+
+    /* Print Rotary Count */
+    printf("Rotary:\n\t");
+    for (int channel = 0; channel < getCapabilities()->rotaryChannels; channel++)
+    {
+        printf("%d ", getState()->rotaryChannel[channel]);
+    }
+    printf("\n");
+
+    /* Print Coin Count */
+    printf("Coin:\n\t%d\n", getState()->coinCount);
+}

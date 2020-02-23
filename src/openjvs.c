@@ -28,6 +28,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
+
     /* Process packets forever */
     while (running)
     {
@@ -36,6 +37,7 @@ int main(int argc, char **argv)
             printf("Error: Failed to process packet properly.");
             return 1;
         }
+        
     }
 
     /* Close the file pointer */
@@ -52,8 +54,8 @@ void handle_sigint(int sig)
 {
     if (sig == 2)
     {
+        printf("Debug: closing\n");
         stopThreads();
         exit(0);
     }
 }
-
