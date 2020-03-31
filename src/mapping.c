@@ -67,7 +67,6 @@ int startThread(char *eventPath, char *mappingPathIn, char *mappingPathOut)
   strcpy(args->eventPath, eventPath);
   strcpy(args->mappingPathIn, mappingPathIn);
   strcpy(args->mappingPathOut, mappingPathOut);
-  printf("starting\n");
   pthread_create(&thread_id[threadCount], NULL, deviceThread, args);
   threadCount++;
 }
@@ -143,7 +142,7 @@ void *deviceThread(void *_args)
   {
     if (read(m.device_fd, &event, sizeof event) > 0)
     {
-    controlPrintStatus();
+      controlPrintStatus();
 
       switch (event.type)
       {
