@@ -20,3 +20,18 @@ OpenJVS3 can be run from the command line by typing the executable name and it w
 ```
 sudo ./bin/openjvs
 ```
+
+## Setup
+
+Settings files are located in `/docs/maps/` and contain both mapping from USB devices to OpenJVS and OpenJVS to Arcade Hardware.
+
+### Devices
+
+Below are the list of commands they take:
+
+- ABS 255 ACCEL
+- KEY 25 BUTTON_1
+
+### Arcade
+
+- BUTTON 1 BUTTON_1
