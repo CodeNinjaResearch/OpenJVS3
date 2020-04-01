@@ -28,16 +28,14 @@ int closeDevice()
     return close(serialIO);
 }
 
-int readByte(char *byte)
+int readBytes(char* buffer, int amount)
 {
-    return read(serialIO, byte, 1);
+    return read(serialIO, buffer, amount);
 }
 
-int writeByte(char byte)
+int writeBytes(char* buffer, int amount)
 {
-    char buffer[] = {0x00};
-    buffer[0] = byte;
-    return write(serialIO, buffer, sizeof(buffer));
+    return write(serialIO, buffer, amount);
 }
 
 /* Sets the configuration of the serial port */
@@ -100,11 +98,11 @@ int setSyncPin(int a)
 {
 	if (a == 0)
 	{
-		printf("FLOATED SYNC PIN");
+		//printf("FLOATED SYNC PIN\n");
 	}
 	else
 	{
-		printf("GROUNDED SYNC PIN");
+		//printf("GROUNDED SYNC PIN\n");
 	}
 	return 0;
 }

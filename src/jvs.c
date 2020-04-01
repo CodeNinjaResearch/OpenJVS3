@@ -1,7 +1,7 @@
 #include "jvs.h"
 
 int deviceID = -1;
-int debugEnabled = 0;
+int debugEnabled = 1;
 
 int initJVS(char *devicePath, JVSCapabilities *capabilitiesSetup)
 {
@@ -87,12 +87,14 @@ int processPacket()
 		return 0;
 	}
 
+
 	JVSPacket outputPacket;
 	outputPacket.length = 0;
 	outputPacket.destination = BUS_MASTER;
 
 	int index = 0;
 
+	debug("-- PACKET START --");
 	while (index < inPacket.length - 1)
 	{
 		int size = 1;
@@ -155,17 +157,17 @@ int processPacket()
 			}
 			break;
 		case CMD_READ_COINS:
-			debug("CMD_READ_COINS\n");
+			debug("CMD_READ_COINS");
 			size = 2;
 			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
 			outputPacket.data[outputPacket.length + 1] = 0x00;
-			outputPacket.data[outputPacket.length + 2] = state->coinCount;
+			outputPacket.data[outputPacket.length + 2] = 0x01;
 			outputPacket.data[outputPacket.length + 3] = 0x00;
 			outputPacket.data[outputPacket.length + 4] = 0x00;
 			outputPacket.length += 5;
 			break;
 		case CMD_READ_ANALOGS:
-			debug("CMD_READ_ANALOGS\n");
+			debug("CMD_READ_ANALOGS");
 			size = 2;
 			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
 			outputPacket.length += 1;
@@ -177,7 +179,7 @@ int processPacket()
 			}
 			break;
 		case CMD_READ_ROTARY:
-			debug("CMD_READ_ROTARY\n");
+			debug("CMD_READ_ROTARY");
 			size = 2;
 			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
 			outputPacket.length += 1;
@@ -193,6 +195,7 @@ int processPacket()
 		}
 		index += size;
 	}
+	debug("-- PACKET END --");
 
 	outputPacket.destination = BUS_MASTER;
 
@@ -202,29 +205,35 @@ int processPacket()
 int readPacket(JVSPacket *packet)
 {
 	unsigned char byte = 0;
-	int n = readByte(&byte);
+	int n = readBytes(&byte, 1);
 	while (byte != SYNC || n < 1)
 	{
-		n = readByte(&byte);
+		n = readBytes(&byte, 1);
 	}
 
-	readByte(&packet->destination);
-	readByte(&packet->length);
-
+	readBytes(&packet->destination, 1);
+	readBytes(&packet->length, 1);
 	unsigned char checksumComputed = packet->destination + packet->length;
 
+	char inputBuffer[MAX_PACKET_SIZE];
+	int read = 0;
+	while(read < packet->length) {
+		read += readBytes(inputBuffer + read, packet->length - read);
+	}
+
+	int inputIndex = 0;
 	for (int i = 0; i < packet->length - 1; i++)
 	{
-		readByte(&packet->data[i]);
-		if (packet->data[i] == ESCAPE)
+		packet->data[inputIndex] = inputBuffer[i];
+		if (packet->data[inputIndex] == ESCAPE)
 		{
-			readByte(&packet->data[i]);
-			packet->data[i] += 1;
+			i++;
+			packet->data[inputIndex] = inputBuffer[i] + 1;
 		}
-		checksumComputed = (checksumComputed + packet->data[i]) & 0xFF;
+		checksumComputed = (checksumComputed + packet->data[inputIndex]) & 0xFF;
+		inputIndex++;
 	}
-	unsigned char checksumReceived = 0;
-	readByte(&checksumReceived);
+	unsigned char checksumReceived = inputBuffer[packet->length - 1];
 
 	if (checksumReceived != checksumComputed)
 	{
@@ -243,26 +252,38 @@ int writePacket(JVSPacket *packet)
 		return 1;
 	}
 
-	writeByte(SYNC);
-	writeByte(packet->destination);
-	writeByte(packet->length + 2);
+	int outputIndex = 0;
+	char outputBuffer[MAX_PACKET_SIZE];
 
-	writeByte(STATUS_SUCCESS);
+	outputBuffer[outputIndex] = SYNC;
+	outputBuffer[outputIndex+1] = packet->destination;
+	outputBuffer[outputIndex+2] = packet->length + 2;
+	outputBuffer[outputIndex+3] = STATUS_SUCCESS;
+	outputIndex+=4;
+
 	unsigned char checksum = packet->destination + packet->length + 2 + STATUS_SUCCESS;
 	for (int i = 0; i < packet->length; i++)
 	{
 		if (packet->data[i] == SYNC || packet->data[i] == ESCAPE)
 		{
-			writeByte(ESCAPE);
-			writeByte(packet->data[i] - 1);
+			outputBuffer[outputIndex] = ESCAPE;
+			outputBuffer[outputIndex+1] = (packet->data[i] - 1);
+			outputIndex+=2;
 		}
 		else
 		{
-			writeByte(packet->data[i]);
+			outputBuffer[outputIndex] = (packet->data[i]);
+			outputIndex++;
 		}
 		checksum = (checksum + packet->data[i]) & 0xFF;
 	}
-	writeByte(checksum);
+	outputBuffer[outputIndex] = checksum;
+	outputIndex+=1;
+
+	if(writeBytes(outputBuffer, outputIndex) < outputIndex) {
+		printf("Failure: Could not write enough bytes\n");
+		return 0;
+	}
 	return 1;
 }
 

@@ -15,8 +15,8 @@
 
 int initDevice(char *devicePath);
 int closeDevice();
-int readByte(char *byte);
-int writeByte(char byte);
+int readBytes(char *buffer, int amount);
+int writeBytes(char* buffer, int amount);
 int setSerialAttributes(int fd, int myBaud);
 int setSerialLowLatency(int fd);
 int setSyncPin(int a);
