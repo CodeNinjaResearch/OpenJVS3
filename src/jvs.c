@@ -6,10 +6,16 @@ int debugEnabled = 0;
 int initJVS(char *devicePath, JVSCapabilities *capabilitiesSetup)
 {
 	/* Init the connection to the Naomi */
-	initDevice(devicePath);
+	if (!initDevice(devicePath))
+	{
+		return 0;
+	}
 
 	/* Init the Virtual IO */
-	initIO(capabilitiesSetup);
+	if (!initIO(capabilitiesSetup))
+	{
+		return 0;
+	}
 
 	return 1;
 }

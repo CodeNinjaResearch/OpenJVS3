@@ -14,7 +14,6 @@
 #include "config.h"
 #include "mapping.h"
 
-
 #define DEV_INPUT_EVENT "/dev/input"
 #define EVENT_DEV_NAME "event"
 
@@ -24,6 +23,7 @@ typedef struct
     char path[256];
 } DeviceTree;
 
+int initInput();
 int scanInputs(void);
 int isEventDevice(const struct dirent *dir);
 void printDeviceTree();

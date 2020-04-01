@@ -3,6 +3,17 @@
 DeviceTree devices[256];
 int deviceCount = 0;
 
+int initInput()
+{
+    if (!scanInputs())
+    {
+        printf("Error: Failed to scan inputs correctly\n");
+        return 0;
+    }
+    connectDevices();
+    return 1;
+}
+
 int isEventDevice(const struct dirent *dir)
 {
     return strncmp(EVENT_DEV_NAME, dir->d_name, 5) == 0;

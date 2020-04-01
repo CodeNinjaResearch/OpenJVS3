@@ -6,10 +6,23 @@ int main(int argc, char **argv)
 {
     signal(SIGINT, handle_sigint);
 
-    printf("OpenJVS\n");
+    printf("OpenJVS3\n");
 
-    scanInputs();
-    connectDevices();
+    for (int i = 0; i < argc; i++)
+    {
+        if (!strcmp("--add-device", argv[i]))
+        {
+            printf("Welcome to adding a device\n");
+            exit(-1);
+        }
+
+        if (!strcmp("--version", argv[i]))
+        {
+            printf("Release: 3.1.1, Input Engine: 2.0, JVS Engine: 3.0.1\n");
+            printf("https://github.com/bobbydilley/OpenJVS\n");
+            exit(-1);
+        }
+    }
 
     /* Setup the IO we are trying to emulate */
     JVSCapabilities capabilities;
@@ -20,6 +33,13 @@ int main(int argc, char **argv)
     capabilities.analogueInChannels = 8;
     capabilities.rotaryChannels = 8;
     capabilities.coins = 0;
+
+    /* Setup the inputs on the computer */
+    if (!initInput())
+    {
+        printf("Error: Inputs could not be setup properly\n");
+        return 1;
+    }
 
     /* Setup the JVS Emulator with the RS485 path and capabilities */
     if (!initJVS("/dev/ttyUSB0", &capabilities))
