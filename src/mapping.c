@@ -137,13 +137,13 @@ void *deviceThread(void *_args)
     }
   }
 
-  printMapping(&m);
+  //printMapping(&m);
 
   while (threadsRunning)
   {
     if (read(m.device_fd, &event, sizeof event) > 0)
     {
-      controlPrintStatus();
+      //controlPrintStatus();
 
       switch (event.type)
       {
@@ -162,7 +162,7 @@ void *deviceThread(void *_args)
           }
           int scaled = (int)((float)(x - min) / (float)(max - min) * 255);
 
-          printf("analogue (min %d, max %d, raw %d) %d -> %d\n", m.analogueMapping[event.code].min, m.analogueMapping[event.code].max, event.value, m.analogueMapping[event.code].channel, scaled);
+          //printf("analogue (min %d, max %d, raw %d) %d -> %d\n", m.analogueMapping[event.code].min, m.analogueMapping[event.code].max, event.value, m.analogueMapping[event.code].channel, scaled);
           if (m.analogueMapping[event.code].type == ANALOGUE)
           {
             setAnalogue(m.analogueMapping[event.code].channel, scaled);
@@ -181,12 +181,13 @@ void *deviceThread(void *_args)
             if (m.keyMapping[event.code].type == BUTTON)
             {
               setSwitch(1, m.keyMapping[event.code].channel, event.value);
+              setSwitch(2, m.keyMapping[event.code].channel, event.value);
             }
             else if (m.keyMapping[event.code].type == SYSTEM)
             {
               setSwitch(0, m.keyMapping[event.code].channel, event.value);
             }
-            printf("key %d -> %d\n", m.keyMapping[event.code].channel, event.value);
+            //printf("key %d -> %d\n", m.keyMapping[event.code].channel, event.value);
           }
         }
 

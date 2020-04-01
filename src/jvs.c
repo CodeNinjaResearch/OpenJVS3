@@ -105,10 +105,15 @@ int processPacket()
 
 	JVSPacket inPacket;
 
-	if (!readPacket(&inPacket))
+	int attempts = 3;
+	if (attempts > 0 && !readPacket(&inPacket))
 	{
 		printf("Error: Could not read packet\n");
-		return 0;
+		attempts -= 1;
+		if (attempts < 1)
+		{
+			return 0;
+		}
 	}
 
 	JVSPacket outputPacket;
@@ -117,7 +122,6 @@ int processPacket()
 
 	int index = 0;
 
-	debug("-- PACKET START --");
 	while (index < inPacket.length - 1)
 	{
 		int size = 1;
@@ -170,11 +174,16 @@ int processPacket()
 			size = 3;
 			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
 			outputPacket.length += 1;
-			for (int i = 0; i <= inPacket.data[index + 1]; i++)
+			outputPacket.data[outputPacket.length] = state->inputSwitch[0][0];
+			outputPacket.length += 1;
+			printf("Players %d\n", inPacket.data[index + 1]);
+			printf("Bytes Per Player %d\n", inPacket.data[index + 2]);
+			for (int i = 0; i < inPacket.data[index + 1]; i++)
 			{
 				for (int j = 0; j < inPacket.data[index + 2]; j++)
 				{
-					outputPacket.data[outputPacket.length] = (state->inputSwitch[i][j]);
+					outputPacket.data[outputPacket.length] = (state->inputSwitch[i + 1][j]);
+					printf("Output: %d\n", outputPacket.data[outputPacket.length]);
 					outputPacket.length += 1;
 				}
 			}
@@ -230,6 +239,14 @@ int processPacket()
 			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
 			outputPacket.length += 1;
 			break;
+		case CMD_DECREASE_COINS:
+			debug("CMD_DECREASE_COINS");
+			size = 4;
+			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
+			outputPacket.length += 1;
+			int amount = inPacket.data[index + 2] << 8 || inPacket.data[index + 8];
+			state->coinCount -= amount;
+			break;
 		default:
 			printf("Warning: This command is not properly supported [0x%02hhX]\n", inPacket.data[index]);
 		}
@@ -244,6 +261,7 @@ int processPacket()
 
 int readPacket(JVSPacket *packet)
 {
+
 	unsigned char byte = 0;
 	int n = readBytes(&byte, 1);
 	while (byte != SYNC || n < 1)

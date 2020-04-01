@@ -17,6 +17,7 @@ int initDevice(char *devicePath)
 	usleep(100 * 1000); //required to make flush work, for some reason
 
 	tcflush(serialIO, TCIOFLUSH);
+	usleep(100 * 1000); //required to make flush work, for some reason
 
 	setSyncPin(0); // Float Sync
 
