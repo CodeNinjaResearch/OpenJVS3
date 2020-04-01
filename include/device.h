@@ -21,5 +21,4 @@ int setSerialAttributes(int fd, int myBaud);
 int setSerialLowLatency(int fd);
 int setSyncPin(int a);
 
-
 #endif // DEVICE_H_

@@ -1,7 +1,7 @@
 #include "jvs.h"
 
 int deviceID = -1;
-int debugEnabled = 1;
+int debugEnabled = 0;
 
 int initJVS(char *devicePath, JVSCapabilities *capabilitiesSetup)
 {
@@ -19,7 +19,7 @@ int disconnectJVS()
 	return closeDevice();
 }
 
-int writeCapabilities(JVSPacket *outputPacket, JVSCapabilities* capabilities)
+int writeCapabilities(JVSPacket *outputPacket, JVSCapabilities *capabilities)
 {
 	outputPacket->data[outputPacket->length] = STATUS_SUCCESS;
 	outputPacket->length += 1;
@@ -76,8 +76,8 @@ void debug(char *string)
 
 int processPacket()
 {
-	JVSState* state = getState();
-	JVSCapabilities* capabilities = getCapabilities();
+	JVSState *state = getState();
+	JVSCapabilities *capabilities = getCapabilities();
 
 	JVSPacket inPacket;
 
@@ -86,7 +86,6 @@ int processPacket()
 		printf("Error: Could not read packet\n");
 		return 0;
 	}
-
 
 	JVSPacket outputPacket;
 	outputPacket.length = 0;
@@ -217,7 +216,8 @@ int readPacket(JVSPacket *packet)
 
 	char inputBuffer[MAX_PACKET_SIZE];
 	int read = 0;
-	while(read < packet->length) {
+	while (read < packet->length)
+	{
 		read += readBytes(inputBuffer + read, packet->length - read);
 	}
 
@@ -256,10 +256,10 @@ int writePacket(JVSPacket *packet)
 	char outputBuffer[MAX_PACKET_SIZE];
 
 	outputBuffer[outputIndex] = SYNC;
-	outputBuffer[outputIndex+1] = packet->destination;
-	outputBuffer[outputIndex+2] = packet->length + 2;
-	outputBuffer[outputIndex+3] = STATUS_SUCCESS;
-	outputIndex+=4;
+	outputBuffer[outputIndex + 1] = packet->destination;
+	outputBuffer[outputIndex + 2] = packet->length + 2;
+	outputBuffer[outputIndex + 3] = STATUS_SUCCESS;
+	outputIndex += 4;
 
 	unsigned char checksum = packet->destination + packet->length + 2 + STATUS_SUCCESS;
 	for (int i = 0; i < packet->length; i++)
@@ -267,8 +267,8 @@ int writePacket(JVSPacket *packet)
 		if (packet->data[i] == SYNC || packet->data[i] == ESCAPE)
 		{
 			outputBuffer[outputIndex] = ESCAPE;
-			outputBuffer[outputIndex+1] = (packet->data[i] - 1);
-			outputIndex+=2;
+			outputBuffer[outputIndex + 1] = (packet->data[i] - 1);
+			outputIndex += 2;
 		}
 		else
 		{
@@ -278,14 +278,12 @@ int writePacket(JVSPacket *packet)
 		checksum = (checksum + packet->data[i]) & 0xFF;
 	}
 	outputBuffer[outputIndex] = checksum;
-	outputIndex+=1;
+	outputIndex += 1;
 
-	if(writeBytes(outputBuffer, outputIndex) < outputIndex) {
+	if (writeBytes(outputBuffer, outputIndex) < outputIndex)
+	{
 		printf("Failure: Could not write enough bytes\n");
 		return 0;
 	}
 	return 1;
 }
-
-
-

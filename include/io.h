@@ -43,6 +43,7 @@ int setSwitch(int player, int switchNumber, int value);
 int incrementCoin();
 int setAnalogue(int channel, int value);
 int setRotary(int channel, int value);
+void controlPrintStatus();
 
 JVSCapabilities *getCapabilities();
 JVSState *getState();

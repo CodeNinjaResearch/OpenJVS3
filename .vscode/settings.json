@@ -2,5 +2,8 @@
     "files.associations": {
         "cstddef": "cpp",
         "io.h": "c"
-    }
+    },
+    "editor.formatOnPaste": true,
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true
 }

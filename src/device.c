@@ -4,13 +4,13 @@ int serialIO = -1;
 
 int initDevice(char *devicePath)
 {
-    if ((serialIO = open(devicePath, O_RDWR | O_NOCTTY | O_SYNC)) < 0)
-    {
-        printf("Failed to open %s\n", devicePath);
-        return 0;
-    }
+	if ((serialIO = open(devicePath, O_RDWR | O_NOCTTY | O_SYNC)) < 0)
+	{
+		printf("Failed to open %s\n", devicePath);
+		return 0;
+	}
 
-    /* Setup the serial connection */
+	/* Setup the serial connection */
 	setSerialAttributes(serialIO, B115200);
 	setSerialLowLatency(serialIO);
 
@@ -19,23 +19,23 @@ int initDevice(char *devicePath)
 	tcflush(serialIO, TCIOFLUSH);
 
 	setSyncPin(0); // Float Sync
-    
-    return 1;
+
+	return 1;
 }
 
 int closeDevice()
 {
-    return close(serialIO);
+	return close(serialIO);
 }
 
-int readBytes(char* buffer, int amount)
+int readBytes(char *buffer, int amount)
 {
-    return read(serialIO, buffer, amount);
+	return read(serialIO, buffer, amount);
 }
 
-int writeBytes(char* buffer, int amount)
+int writeBytes(char *buffer, int amount)
 {
-    return write(serialIO, buffer, amount);
+	return write(serialIO, buffer, amount);
 }
 
 /* Sets the configuration of the serial port */

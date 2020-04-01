@@ -4,7 +4,12 @@ int running = 1;
 
 int main(int argc, char **argv)
 {
-    printf("OpenJVS3 Development Version\n");
+    signal(SIGINT, handle_sigint);
+
+    printf("OpenJVS\n");
+
+    scanInputs();
+    connectDevices();
 
     /* Setup the IO we are trying to emulate */
     JVSCapabilities capabilities;
@@ -22,7 +27,6 @@ int main(int argc, char **argv)
         printf("Error: Couldn't connect to serial\n");
         return 1;
     }
-
 
     /* Process packets forever */
     while (running)
@@ -42,4 +46,14 @@ int main(int argc, char **argv)
     }
 
     return 0;
+}
+
+void handle_sigint(int sig)
+{
+    if (sig == 2)
+    {
+        printf("Debug: closing\n");
+        stopThreads();
+        exit(0);
+    }
 }
