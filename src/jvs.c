@@ -39,6 +39,15 @@ int writeCapabilities(JVSPacket *outputPacket, JVSCapabilities *capabilities)
 		outputPacket->length += 4;
 	}
 
+	if (capabilities->coins > 0)
+	{
+		outputPacket->data[outputPacket->length] = CAP_COINS;
+		outputPacket->data[outputPacket->length + 1] = capabilities->coins;
+		outputPacket->data[outputPacket->length + 2] = 0x00;
+		outputPacket->data[outputPacket->length + 3] = CAP_END;
+		outputPacket->length += 4;
+	}
+
 	if (capabilities->analogueInChannels > 0)
 	{
 		outputPacket->data[outputPacket->length] = CAP_ANALOG_IN;
@@ -57,10 +66,19 @@ int writeCapabilities(JVSPacket *outputPacket, JVSCapabilities *capabilities)
 		outputPacket->length += 4;
 	}
 
-	if (capabilities->coins > 0)
+	if (capabilities->generalPurposeOutputs > 0)
 	{
-		outputPacket->data[outputPacket->length] = CAP_COINS;
-		outputPacket->data[outputPacket->length + 1] = capabilities->coins;
+		outputPacket->data[outputPacket->length] = CAP_GPO;
+		outputPacket->data[outputPacket->length + 1] = capabilities->generalPurposeOutputs;
+		outputPacket->data[outputPacket->length + 2] = 0x00;
+		outputPacket->data[outputPacket->length + 3] = CAP_END;
+		outputPacket->length += 4;
+	}
+
+	if (capabilities->analogueOutChannels > 0)
+	{
+		outputPacket->data[outputPacket->length] = CAP_ANALOG_OUT;
+		outputPacket->data[outputPacket->length + 1] = capabilities->analogueOutChannels;
 		outputPacket->data[outputPacket->length + 2] = 0x00;
 		outputPacket->data[outputPacket->length + 3] = CAP_END;
 		outputPacket->length += 4;
@@ -166,7 +184,7 @@ int processPacket()
 			size = 2;
 			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
 			outputPacket.data[outputPacket.length + 1] = 0x00;
-			outputPacket.data[outputPacket.length + 2] = 0x01;
+			outputPacket.data[outputPacket.length + 2] = state->coinCount;
 			outputPacket.data[outputPacket.length + 3] = 0x00;
 			outputPacket.data[outputPacket.length + 4] = 0x00;
 			outputPacket.length += 5;
@@ -195,12 +213,29 @@ int processPacket()
 				outputPacket.length += 2;
 			}
 			break;
+		case CMD_WRITE_GPO:
+			debug("CMD_WRITE_GPO");
+			size = 2 + inPacket.data[index + 1];
+			for (int i = 0; i < inPacket.data[index + 1]; i++)
+			{
+				unsigned char thing = inPacket.data[index + 1 + i];
+				for (int j = 7; j >= 0; j--)
+				{
+					unsigned char bit = (thing >> j) & 1;
+					printf("%u", bit);
+				}
+				printf(" ");
+			}
+			printf("\n");
+			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
+			outputPacket.length += 1;
+			break;
 		default:
 			printf("Warning: This command is not properly supported [0x%02hhX]\n", inPacket.data[index]);
 		}
 		index += size;
 	}
-	debug("-- PACKET END --");
+	debug("");
 
 	outputPacket.destination = BUS_MASTER;
 
@@ -220,7 +255,7 @@ int readPacket(JVSPacket *packet)
 	readBytes(&packet->length, 1);
 	unsigned char checksumComputed = packet->destination + packet->length;
 
-	char inputBuffer[MAX_PACKET_SIZE];
+	unsigned char inputBuffer[MAX_PACKET_SIZE];
 	int read = 0;
 	while (read < packet->length)
 	{
@@ -259,7 +294,7 @@ int writePacket(JVSPacket *packet)
 	}
 
 	int outputIndex = 0;
-	char outputBuffer[MAX_PACKET_SIZE];
+	unsigned char outputBuffer[MAX_PACKET_SIZE];
 
 	outputBuffer[outputIndex] = SYNC;
 	outputBuffer[outputIndex + 1] = packet->destination;

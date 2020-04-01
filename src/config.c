@@ -23,12 +23,18 @@ int processInMapFile(char *filePath, MappingIn *mappingIn)
                 char *token = strtok(buffer, " ");
                 IN_TYPE type = KEY;
                 /* KEY <CHANNEL> <MODE> */
-                if (strcmp(token, "KEY") == 0 || strcmp(token, "ABS") == 0)
+                if (strcmp(token, "KEY") == 0 || strcmp(token, "ABS") == 0 || strcmp(token, "REV_ABS") == 0)
                 {
+                    int reverse = 0;
                     if (strcmp(token, "KEY") == 0)
                         type = KEY;
                     if (strcmp(token, "ABS") == 0)
                         type = ABS;
+                    if (strcmp(token, "REV_ABS") == 0)
+                    {
+                        type = ABS;
+                        reverse = 1;
+                    }
 
                     token = strtok(NULL, " ");
                     if (token[strlen(token) - 1] == '\n')
@@ -38,6 +44,7 @@ int processInMapFile(char *filePath, MappingIn *mappingIn)
                     token = strtok(NULL, " ");
                     if (token[strlen(token) - 1] == '\n')
                         token[strlen(token) - 1] = '\0';
+                    MODE mode = modeStringToEnum(token);
 
                     int min = 0;
                     int max = 0;
@@ -50,9 +57,10 @@ int processInMapFile(char *filePath, MappingIn *mappingIn)
                     MappingIn tempMapping = {
                         .channel = channel,
                         .type = type,
-                        .mode = modeStringToEnum(token),
+                        .mode = mode,
                         .min = min,
-                        .max = max};
+                        .max = max,
+                        .reverse = reverse};
 
                     mappingIn[count] = tempMapping;
                     count++;

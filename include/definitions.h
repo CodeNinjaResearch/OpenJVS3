@@ -73,6 +73,7 @@ typedef struct
     MODE mode;
     int min;
     int max;
+    int reverse;
 } MappingIn;
 
 typedef struct
@@ -82,6 +83,7 @@ typedef struct
     MODE mode;
     int min;
     int max;
+    int reverse;
 } MappingOut;
 
 MODE modeStringToEnum(const char *str);

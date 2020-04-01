@@ -14,6 +14,7 @@ int processMaps(MappingStruct *m)
       m->analogueMapping[m->insideMappings[i].channel] = findMapping(m->insideMappings[i].mode, m);
       m->analogueMapping[m->insideMappings[i].channel].min = m->insideMappings[i].min;
       m->analogueMapping[m->insideMappings[i].channel].max = m->insideMappings[i].max;
+      m->analogueMapping[m->insideMappings[i].channel].reverse = m->insideMappings[i].reverse;
       break;
     case KEY:
       m->keyMapping[m->insideMappings[i].channel] = findMapping(m->insideMappings[i].mode, m);
@@ -153,6 +154,12 @@ void *deviceThread(void *_args)
           float x = event.value;
           float min = m.analogueMapping[event.code].min;
           float max = m.analogueMapping[event.code].max;
+          if (m.analogueMapping[event.code].reverse)
+          {
+            float temp = min;
+            min = max;
+            max = temp;
+          }
           int scaled = (int)((float)(x - min) / (float)(max - min) * 255);
 
           printf("analogue (min %d, max %d, raw %d) %d -> %d\n", m.analogueMapping[event.code].min, m.analogueMapping[event.code].max, event.value, m.analogueMapping[event.code].channel, scaled);

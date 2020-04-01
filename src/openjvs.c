@@ -28,10 +28,11 @@ int main(int argc, char **argv)
     JVSCapabilities capabilities;
     capabilities.name = "OpenJVS3 Emulator;I/O BD JVS;837-13551;Ver1.00;98/10";
     capabilities.players = 2;
-    capabilities.switches = 8;
+    capabilities.switches = 14;
     capabilities.analogueInBits = 8;
     capabilities.analogueInChannels = 8;
     capabilities.rotaryChannels = 8;
+    capabilities.generalPurposeOutputs = 0;
     capabilities.coins = 0;
 
     /* Setup the inputs on the computer */
