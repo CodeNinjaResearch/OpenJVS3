@@ -153,7 +153,13 @@ void *deviceThread(void *_args)
           float x = event.value;
           float min = m.analogueMapping[event.code].min;
           float max = m.analogueMapping[event.code].max;
-          int scaled = (int)((float)(x - min) / (float)(max - min) * 255);
+
+          uint16_t anlog_max;
+
+          // todo: check return code for all critical calls here
+          jvs_get_analog_max(&anlog_max);
+
+          int scaled = (int)((float)(x - min) / (float)(max - min) * anlog_max);
 
           printf("analogue (min %d, max %d, raw %d) %d -> %d\n", m.analogueMapping[event.code].min, m.analogueMapping[event.code].max, event.value, m.analogueMapping[event.code].channel, scaled);
           if (m.analogueMapping[event.code].type == ANALOGUE)

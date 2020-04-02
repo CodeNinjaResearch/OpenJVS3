@@ -16,4 +16,6 @@ int processConfig(char *filePath);
 int processInMapFile(char *filePath, MappingIn *mappingIn);
 int processOutMapFile(char *filePath, MappingOut *mappingOut);
 
+void print_mapping_in(MappingIn *mappingIn);
+
 #endif // CONFIG_H_

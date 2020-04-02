@@ -66,6 +66,8 @@ int scanInputs(void)
             }
         }
 
+        // DEBUG ONLY
+        printf("Path:%s Device:%s \n", fname, name);
         strcpy(devices[deviceCount].name, name);
         strcpy(devices[deviceCount].path, fname);
         deviceCount++;

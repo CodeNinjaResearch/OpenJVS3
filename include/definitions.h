@@ -4,6 +4,37 @@
 #include <stdio.h>
 #include <string.h>
 
+
+#define OFFLINE_MODE
+
+#define min(x,y) ((x) <= (y)) ? (x) : (y)
+
+typedef enum
+{
+        OPEN_JVS_ERR_OK = 0,
+        /* Errors that indicates something is not working */
+        OPEN_JVS_ERR_REC_BUFFER,
+        OPEN_JVS_ERR_SERIAL_READ,
+        OPEN_JVS_ERR_SERIAL_WRITE,
+        OPEN_JVS_ERR_STATE,
+        OPEN_JVS_ERR_CHECKSUM,
+        OPEN_JVS_ERR_NULL,
+        OPEN_JVS_ERR_INVALID_CMD,
+        OPEN_JVS_ERR_OFFLINE,
+ //       OPEN_JVS_ERR_REPORT,
+        OPEN_JVS_ERR_JVS_PROFILE_NULL,
+        OPEN_JVS_ERR_ANALOG_MASK,
+        OPEN_JVS_ERR_PACKET_BUFFER_OVERFLOW,
+
+        /* Errors/Status that are fine */
+        OPEN_JVS_ERR_TIMEOUT,
+        OPEN_JVS_ERR_SYNC_BYTE,
+        OPEN_JVS_NO_RESPONSE,
+        OPEN_JVS_ERR_WAIT_BYTES,
+
+} open_jvs_status_t;
+
+
 typedef enum
 {
     WHEEL,
@@ -29,7 +60,8 @@ const static struct
 {
     MODE val;
     const char *str;
-} modeConversion[] = {
+} modeConversion[] =
+{
     {WHEEL, "WHEEL"},
     {ACCELERATOR, "ACCELERATOR"},
     {BREAK, "BREAK"},

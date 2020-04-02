@@ -8,6 +8,21 @@ int processConfig(char *filePath)
     printf("Processing config from: %s\n", filePath);
 }
 
+void print_mapping_in(MappingIn *mappingIn)
+{
+  if(NULL != mappingIn)
+  {
+    printf("Type:%u Mode:%u Key/Channel:%u Min:%d Max:%d \n",
+           mappingIn->type,
+           mappingIn->mode,
+           mappingIn->channel,
+           mappingIn->min,
+           mappingIn->max
+           );
+  }
+
+}
+
 int processInMapFile(char *filePath, MappingIn *mappingIn)
 {
     int count = 0;
@@ -18,7 +33,7 @@ int processInMapFile(char *filePath, MappingIn *mappingIn)
         fgets(buffer, 1024, fp);
         while (!feof(fp))
         {
-            if (buffer[0] != '#' && buffer[0] != 0 && strcmp(buffer, "") != 0)
+            if ((buffer[0] != '#') && (buffer[0] != 0) && (buffer[0] != '\r') && (buffer[0] != '\n') && (strcmp(buffer, "") != 0))
             {
                 char *token = strtok(buffer, " ");
                 IN_TYPE type = KEY;
@@ -39,6 +54,7 @@ int processInMapFile(char *filePath, MappingIn *mappingIn)
                     if (token[strlen(token) - 1] == '\n')
                         token[strlen(token) - 1] = '\0';
 
+                    // todo: min/max should be defined either by user, the JVS-IO capabilites or the input device..
                     int min = 0;
                     int max = 0;
                     if (type == ABS)
@@ -53,6 +69,9 @@ int processInMapFile(char *filePath, MappingIn *mappingIn)
                         .mode = modeStringToEnum(token),
                         .min = min,
                         .max = max};
+
+                    // DEBUG only
+                    print_mapping_in(&tempMapping);
 
                     mappingIn[count] = tempMapping;
                     count++;
@@ -78,7 +97,7 @@ int processOutMapFile(char *filePath, MappingOut *mappingIn)
         fgets(buffer, 1024, fp);
         while (!feof(fp))
         {
-            if (buffer[0] != '#' && buffer[0] != 0 && strcmp(buffer, "") != 0)
+            if ((buffer[0] != '#') && (buffer[0] != 0) && (buffer[0] != '\r') && (buffer[0] != '\n') && (strcmp(buffer, "") != 0))
             {
                 char *token = strtok(buffer, " ");
                 IN_TYPE type = KEY;
@@ -113,7 +132,7 @@ int processOutMapFile(char *filePath, MappingOut *mappingIn)
                 }
                 else
                 {
-                    printf("config.c: processOutMapFile: incorrect settings keyword.\n");
+                    printf("config.c: processOutMapFile: incorrect settings keyword:%x \n", buffer[0]);
                 }
             }
             fgets(buffer, 1024, fp);

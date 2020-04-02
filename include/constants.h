@@ -7,8 +7,8 @@
 
 #define SYNC 0xE0
 #define ESCAPE 0xD0
-#define BROADCAST 0xFF
-#define BUS_MASTER 0x00
+#define NODE_BROADCAST 0xFF
+#define NODE_BUS_MASTER 0x00
 #define DEVICE_ADDR_START 0x01
 
 #define STATUS_SUCCESS 0x01
@@ -61,3 +61,32 @@
 #define INIT_DELAY 1.0 // delay after a bus reset to wait for devices to initialize
 #define CMD_DELAY 0.01 // delay between commands
 #endif                 // CONSTANTS_H_
+
+
+/* Message Layout:
+ * |Sync (1byte) | Node Number (1byte) | Number Bytes Payload (1byte) | Cmd (1byte) | ...(Payload-1) | Checksum (1byte)| */
+
+
+#define CMD_IDX_SNY 0
+#define CMD_IDX_NODE_NUMBER 1
+#define CMD_IDX_NUMBER_BYTES_PAYLOAD 2
+/* Request: Command byte, Reply: Status byte */
+#define CMD_IDX_CMD_STATUS 3
+#define CMD_IDX_PAYLOAD 4
+
+/* HEADER_LEN: 3: SYN + Node Number + Number Bytes Payload  (WITH SYN)*/
+#define CMD_LEN_HEADER (CMD_LEN_SYNC + CMD_LEN_NODE + CMD_LEN_NUMBER_BYTES)
+#define CMD_LEN_CHECKSUM 1
+#define CMD_LEN_SYNC 1
+#define CMD_LEN_NUMBER_BYTES 1
+#define CMD_LEN_CMD 1
+#define CMD_STATUS 1
+#define CMD_LEN_NODE 1
+
+#define GET_MSG_REQ_LEN(packet) (packet[CMD_IDX_NUMBER_BYTES_PAYLOAD] + CMD_LEN_HEADER)
+#define GET_MSG_REQ_PAYLOAD_LEN(packet) (packet[CMD_IDX_NUMBER_BYTES_PAYLOAD] - CMD_LEN_CHECKSUM)
+
+
+
+/* Timeout in sec after the receive buffer will be flushed and Sync-line set to not addressed */
+#define TIMEOUT_INTER_BYTE 10

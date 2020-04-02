@@ -1,69 +1,231 @@
+#include <string.h>
+#include "definitions.h"
+
 #include "io.h"
 
 JVSState state;
-JVSCapabilities *capabilities;
 
-int initIO(JVSCapabilities *capabilitiesSetup)
+open_jvs_status_t initIO(void)
 {
-	capabilities = capabilitiesSetup;
+  open_jvs_status_t retval = OPEN_JVS_ERR_OK;
 
-	div_t switchDiv = div(capabilities->switches, 8);
-	int switchBytes = switchDiv.quot + (switchDiv.rem ? 1 : 0);
-	for (int players = 0; players < (capabilities->players + 1); players++)
-	{
-		for (int switches = 0; switches < switchBytes; switches++)
-		{
-			state.inputSwitch[players][switches] = 0x00;
-		}
-	}
+  JVSCapabilities *capabilities;
 
-	for (int analogueChannels = 0; analogueChannels < capabilities->analogueInChannels; analogueChannels++)
-	{
-		state.analogueChannel[analogueChannels] = 0;
-	}
+  capabilities = getCapabilities();
 
-	for (int rotaryChannels = 0; rotaryChannels < capabilities->rotaryChannels; rotaryChannels++)
-	{
-		state.rotaryChannel[rotaryChannels] = 0;
-	}
+  if(NULL == capabilities)
+  {
+    retval = OPEN_JVS_ERR_NULL;
+  }
 
-	state.coinCount = 0;
+  if(OPEN_JVS_ERR_OK == retval)
+  {
+    memset(capabilities, 0, sizeof(JVSCapabilities));
 
-	return 1;
+    // todo: use config to select template for JVS-IO ?
+    uint8_t idx = 0;
+    switch(idx)
+    {
+      default:
+      case 0:
+      {
+        memcpy(capabilities, &jvs_io_lindbergh, sizeof(JVSCapabilities));
+      }
+      break;
+
+      case 1:
+      {
+        memcpy(capabilities, &jvs_io_naomi, sizeof(JVSCapabilities));
+      }
+    }
+  }
+
+  /* Set analogue mask */
+  if(OPEN_JVS_ERR_NULL == retval)
+  {
+    if(capabilities->analogueInBits > (sizeof(capabilities->analogueMask) * 8))
+    {
+      retval = OPEN_JVS_ERR_ANALOG_MASK;
+    }
+
+    /* Set max value that is supported for the set number of bits set for the analog channel */
+
+    uint16_t max = 0;
+    uint16_t mask = 0;
+
+    printf("jvs_analog_number_bits:%d\n", capabilities->analogueInBits);
+
+    for(int16_t i = 0; i < capabilities->analogueInBits; i++)
+    {
+      max |= (1 << i);
+    }
+
+    for(int16_t i = 0; i <= (capabilities->analogueInBits - 1); i++)
+    {
+      mask |= (1 << (((sizeof(capabilities->analogueMask) * 8)-1) -i));
+    }
+
+    capabilities->analogueMask = mask;
+    capabilities->analogueMax = max;
+
+    // DEBUG ONLY
+    printf("jvs_analog_max:%04X \n", capabilities->analogueMask );
+    printf("jvs_analog_mask:%04X \n", capabilities->analogueMask);
+
+//    jvs_set_analog_max(max);
+//    jvs_set_analog_mask(mask);
+
+  }
+
+  div_t switchDiv = div(capabilities->switches, 8);
+  int switchBytes = switchDiv.quot + (switchDiv.rem ? 1 : 0);
+  for (int players = 0; players < (capabilities->players + 1); players++)
+  {
+    for (int switches = 0; switches < switchBytes; switches++)
+    {
+      state.inputSwitch[players][switches] = 0x00;
+    }
+  }
+
+  for (int analogueChannels = 0; analogueChannels < capabilities->analogueInChannels; analogueChannels++)
+  {
+    state.analogueChannel[analogueChannels] = 0;
+  }
+
+  for (int rotaryChannels = 0; rotaryChannels < capabilities->rotaryChannels; rotaryChannels++)
+  {
+    state.rotaryChannel[rotaryChannels] = 0;
+  }
+
+  state.coinCount = 0;
+
+  return retval;
 }
 
-JVSCapabilities *getCapabilities()
+open_jvs_status_t jvs_get_analog_mask(uint16_t * analog_mask)
 {
-	return capabilities;
+  open_jvs_status_t retval = OPEN_JVS_ERR_OK;
+  JVSCapabilities *capabilities;
+
+  capabilities = getCapabilities();
+
+  if(NULL == capabilities)
+  {
+    retval = OPEN_JVS_ERR_NULL;
+  }
+
+  if(NULL == analog_mask)
+  {
+    retval = OPEN_JVS_ERR_NULL;
+  }
+
+  if(OPEN_JVS_ERR_OK == retval)
+  {
+    *analog_mask = capabilities->analogueMask;
+  }
+
+  return retval;
 }
+
+open_jvs_status_t jvs_set_analog_mask(uint16_t mask)
+{
+  open_jvs_status_t retval = OPEN_JVS_ERR_OK;
+
+  JVSCapabilities *capabilities;
+
+    capabilities = getCapabilities();
+
+    if(NULL == capabilities)
+    {
+      retval = OPEN_JVS_ERR_NULL;
+    }
+
+    if(OPEN_JVS_ERR_OK == retval)
+    {
+      capabilities->analogueMask = mask;
+    }
+
+  return retval;
+}
+
+
+open_jvs_status_t jvs_get_analog_max(uint16_t * analog_max)
+{
+  open_jvs_status_t retval = OPEN_JVS_ERR_OK;
+  JVSCapabilities *capabilities;
+
+  capabilities = getCapabilities();
+
+  if(NULL == capabilities)
+  {
+    retval = OPEN_JVS_ERR_NULL;
+  }
+
+  if(NULL == analog_max)
+  {
+    retval = OPEN_JVS_ERR_NULL;
+  }
+
+  if(OPEN_JVS_ERR_OK == retval)
+  {
+    *analog_max = capabilities->analogueMax;
+  }
+
+  return retval;
+}
+
+open_jvs_status_t jvs_set_analog_max(uint16_t max)
+{
+  open_jvs_status_t retval = OPEN_JVS_ERR_OK;
+
+  JVSCapabilities *capabilities;
+
+    capabilities = getCapabilities();
+
+    if(NULL == capabilities)
+    {
+      retval = OPEN_JVS_ERR_NULL;
+    }
+
+    if(OPEN_JVS_ERR_OK == retval)
+    {
+      capabilities->analogueMax = max;
+    }
+
+  return retval;
+}
+
 
 int setSwitch(int player, int switchNumber, int value)
 {
-	if (player > capabilities->players)
-	{
-		printf("Error - That player does not exist.\n");
-		return 0;
-	}
+  JVSCapabilities *capabilities;
+  capabilities = getCapabilities();
 
-	if (switchNumber >= capabilities->switches)
-	{
-		printf("Error - That switch does not exist.\n");
-		return 0;
-	}
+  if (player > capabilities->players)
+  {
+    printf("Error - That player does not exist.\n");
+    return 0;
+  }
 
-	div_t switchDiv = div(switchNumber, 8);
-	int switchBytes = switchDiv.quot + (switchDiv.rem ? 1 : 0);
+  if (switchNumber >= capabilities->switches)
+  {
+    printf("Error - That switch does not exist.\n");
+    return 0;
+  }
 
-	if (value)
-	{
-		state.inputSwitch[player][switchDiv.quot] |= 1 << switchDiv.rem;
-	}
-	else
-	{
-		state.inputSwitch[player][switchDiv.quot] &= ~(1 << switchDiv.rem);
-	}
+  div_t switchDiv = div(switchNumber, 8);
+  int switchBytes = switchDiv.quot + (switchDiv.rem ? 1 : 0);
 
-	return 1;
+  if (value)
+  {
+    state.inputSwitch[player][switchDiv.quot] |= 1 << switchDiv.rem;
+  }
+  else
+  {
+    state.inputSwitch[player][switchDiv.quot] &= ~(1 << switchDiv.rem);
+  }
+
+  return 1;
 }
 
 int incrementCoin()
@@ -73,22 +235,29 @@ int incrementCoin()
 }
 int setAnalogue(int channel, int value)
 {
-	if (channel < capabilities->analogueInChannels)
-	{
-		state.analogueChannel[channel] = value;
-		return 1;
-	}
-	return 0;
+  JVSCapabilities *capabilities;
+  capabilities = getCapabilities();
+
+  if (channel < capabilities->analogueInChannels)
+  {
+    state.analogueChannel[channel] = value;
+    return 1;
+  }
+  return 0;
 }
+
 int setRotary(int channel, int value)
 {
-	if (channel < capabilities->rotaryChannels)
-	{
-		state.rotaryChannel[channel] = value;
-		return 1;
-	}
+  JVSCapabilities *capabilities;
+  capabilities = getCapabilities();
 
-	return 0;
+  if (channel < capabilities->rotaryChannels)
+  {
+    state.rotaryChannel[channel] = value;
+    return 1;
+  }
+
+  return 0;
 }
 
 JVSState *getState()
