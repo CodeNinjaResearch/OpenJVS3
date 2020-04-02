@@ -38,7 +38,6 @@ typedef struct
     uint8_t backup;
     char *name;
 
-    // todo: fill init
     uint8_t jvs_command_version;
     uint8_t jvs_version;
     uint8_t jvs_com_version;
@@ -47,17 +46,6 @@ typedef struct
     uint16_t analogueMax;
 
 } JVSCapabilities;
-
-
-//    capabilities.name = "OpenJVS3 Emulator;I/O BD JVS;837-13551;Ver1.00;98/10";
-//    capabilities.players = 2;
-//    capabilities.switches = 8;
-//    capabilities.analogueInBits = 8;
-//    capabilities.analogueInChannels = 8;
-//    capabilities.rotaryChannels = 8;
-//    capabilities.coins = 1;
-
-
 
 static const JVSCapabilities jvs_io_lindbergh =
 {
@@ -77,7 +65,7 @@ static const JVSCapabilities jvs_io_naomi=
 {
     .name = "OpenJVS Emulator;I/O BD JVS;837-13551;Ver1.00;98/10",
     .players = 2,
-    .switches = 0xD,
+    .switches = 16, // @Bobby: Why 16?
     .jvs_command_version = 0x10,
     .jvs_version = 0x11,
     .jvs_com_version = 0x10,
@@ -86,23 +74,6 @@ static const JVSCapabilities jvs_io_naomi=
     .rotaryChannels = 8, // is this right?
     .coins = 2,
 };
-
-//// todo: @Bobby: I did not check these values but just copied them from the old source - are these verified?
-//static const jvs_io_t jvs_io_naomi=
-//{
-//    .jvs_id_str = "OpenJVS Emulator;I/O BD JVS;837-13551;Ver1.00;98/10",
-//    .jvs_cmd_revision = 0x11,
-//    .jvs_standard = 0x30,
-//    .jvs_analog_channels = 8,
-//    .jvs_analog_number_bits = 8,
-//    .jvs_rotary_channels = 8, // is this right?
-//    .jvs_coin_slots = 2,
-//};
-
-
-
-
-
 
 open_jvs_status_t initIO(/* JVSCapabilities *capabilitiesSetup*/);
 int setSwitch(int player, int switchNumber, int value);

@@ -19,6 +19,7 @@
 
 /* Global definitions */
 
+extern int debugEnabled;
 
 typedef struct
 {

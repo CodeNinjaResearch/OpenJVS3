@@ -14,6 +14,7 @@ int processMaps(MappingStruct *m)
       m->analogueMapping[m->insideMappings[i].channel] = findMapping(m->insideMappings[i].mode, m);
       m->analogueMapping[m->insideMappings[i].channel].min = m->insideMappings[i].min;
       m->analogueMapping[m->insideMappings[i].channel].max = m->insideMappings[i].max;
+      m->analogueMapping[m->insideMappings[i].channel].reverse = m->insideMappings[i].reverse;
       break;
     case KEY:
       m->keyMapping[m->insideMappings[i].channel] = findMapping(m->insideMappings[i].mode, m);
@@ -33,7 +34,7 @@ MappingOut findMapping(MODE mode, MappingStruct *m)
       return m->outsideMappings[i];
     }
   }
-  printf("Major mapping failure no outside found\n");
+  printf("No arcade map doesn't support: %s\n", modeEnumToString(mode));
   return m->outsideMappings[1];
 }
 
@@ -154,6 +155,13 @@ void *deviceThread(void *_args)
           float min = m.analogueMapping[event.code].min;
           float max = m.analogueMapping[event.code].max;
 
+          if (m.analogueMapping[event.code].reverse)
+          {
+            float temp = min;
+            min = max;
+            max = temp;
+          }
+
           uint16_t anlog_max;
 
           // todo: check return code for all critical calls here
@@ -180,6 +188,7 @@ void *deviceThread(void *_args)
             if (m.keyMapping[event.code].type == BUTTON)
             {
               setSwitch(1, m.keyMapping[event.code].channel, event.value);
+              setSwitch(2, m.keyMapping[event.code].channel, event.value);
             }
             else if (m.keyMapping[event.code].type == SYSTEM)
             {

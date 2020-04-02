@@ -3,6 +3,7 @@
 #include "stdio.h"
 #include <unistd.h>
 
+// DEBUG
 int running = 1;
 
 circ_buffer_t read_buffer;
@@ -20,10 +21,30 @@ int main(int argc, char **argv)
 
   signal(SIGINT, handle_sigint);
 
-  printf("OpenJVS\n");
+  printf("OpenJVS3\n");
 
-  scanInputs();
-  connectDevices();
+  for (int i = 0; i < argc; i++)
+  {
+    if (!strcmp("--add-device", argv[i]))
+    {
+      printf("Welcome to adding a device\n");
+      exit(-1);
+    }
+
+    if (!strcmp("--version", argv[i]))
+    {
+      printf("Release: 3.1.1, Input Engine: 2.0, JVS Engine: 3.0.1\n");
+      printf("https://github.com/bobbydilley/OpenJVS3\n");
+      exit(-1);
+    }
+  }
+
+  /* Setup the inputs on the computer */
+  if (!initInput())
+  {
+    printf("Error: Inputs could not be setup properly\n");
+    return 1;
+  }
 
   /* Setup the JVS Emulator with the RS485 path and capabilities */
   retval = initJVS("/dev/ttyUSB0", &capabilities);
@@ -33,7 +54,6 @@ int main(int argc, char **argv)
     printf("initJVS() returned:%d \n",retval);
     return 1;
   }
-
 
   /* Process packets forever */
   while (running)
@@ -54,17 +74,17 @@ int main(int argc, char **argv)
       case OPEN_JVS_NO_RESPONSE:
       case OPEN_JVS_ERR_WAIT_BYTES:
       {
-        uint8_t dbg[300];
-        snprintf(dbg, sizeof(dbg),"jvs main loop returned:%d \n", retval);
-        debug(dbg);
+        if(debugEnabled)
+        {
+          printf("jvs main loop returned:%d \n", retval);
+        }
       }
       break;
 
       /* Errors */
       default:
       {
-        uint8_t dbg[300];
-        snprintf(dbg, sizeof(dbg),"jvs main loop returned:%d \n", retval);
+        printf("jvs main loop returned:%d \n", retval);
 
         running = false;
       }

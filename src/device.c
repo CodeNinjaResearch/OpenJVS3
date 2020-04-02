@@ -20,11 +20,12 @@ int initDevice(char *devicePath)
 
   tcflush(serialIO, TCIOFLUSH);
 
+  usleep(100 * 1000); //required to make flush work, for some reason
+
   setSyncPin(0); // Float Sync
 
   return 1;
 }
-
 
 open_jvs_status_t write_serial(/*int serial,*/ uint8_t *data, uint32_t data_len)
 {
@@ -122,23 +123,9 @@ open_jvs_status_t read_serial( /*int serial ,*/ circ_buffer_t * read_buffer)
   return retval;
 }
 
-
-
 int closeDevice()
 {
 	return close(serialIO);
-}
-
-int readByte(char *byte)
-{
-	return read(serialIO, byte, 1);
-}
-
-int writeByte(char byte)
-{
-	char buffer[] = {0x00};
-	buffer[0] = byte;
-	return write(serialIO, buffer, sizeof(buffer));
 }
 
 /* Sets the configuration of the serial port */
@@ -201,11 +188,11 @@ int setSyncPin(int a)
 {
 	if (a == 0)
 	{
-		printf("FLOATED SYNC PIN");
+		//printf("FLOATED SYNC PIN");
 	}
 	else
 	{
-		printf("GROUNDED SYNC PIN");
+		//printf("GROUNDED SYNC PIN");
 	}
 	return 0;
 }

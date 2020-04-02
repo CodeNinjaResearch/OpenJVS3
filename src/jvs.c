@@ -2,9 +2,7 @@
 #include "jvs.h"
 #include "constants.h"
 #include "definitions.h"
-
-
-
+#include "circ_buffer.h"
 
 /* Select timeout in ms*/
 #define TIMEOUT_SELECT 500
@@ -16,26 +14,11 @@ time_t time_current;
 int deviceID = -1;
 int debugEnabled = 1;
 
-//uint8_t response[LINEAR_BUFFER_SIZE];
-//uint8_t request[LINEAR_BUFFER_SIZE];
-
 // todo: init read_buffer!!
 circ_buffer_t read_buffer;
 
 JVSPacket packetIn;
 JVSPacket packetOut;
-
-/*
- * todo:
- * -> Reception/Sending of data not byte-wise (use my receive and escape functions)
- * -> add indices to processPacket arrays?
- * -> Request for strings want a \0 terminated string in the response?
- * -> JVS IO struct: add deviceID, CMD_COMMAND_VERSION, CMD_JVS_VERSION, CMD_COMMS_VERSION, CMD_READ_SWITCHES with variable length
- * -> CMD_READ_COINS: use 16 bit
- * -> CMD_READ_ANALOGS, CMD_READ_ROTARY: Use number of bits specified by JVS IO capabilities
- * -> use mutex between IO threads and JVS thread and work with deep copy of JVSState not have inconsisten data?
- * */
-
 
 // DEBUG STUFF
 void print_msg (JVSPacket *msg)
@@ -51,11 +34,13 @@ void print_msg (JVSPacket *msg)
   }
 }
 
-
 open_jvs_status_t initJVS(char *devicePath, JVSCapabilities *capabilitiesSetup)
 {
   open_jvs_status_t retval = OPEN_JVS_ERR_OK;
-  /* Init the connection to the Naomi */
+
+  circ_buffer_init(&read_buffer);
+
+  /* Init the connection to the JVS-Master */
   initDevice(devicePath);
 
   /* Init the Virtual IO */
@@ -66,7 +51,7 @@ open_jvs_status_t initJVS(char *devicePath, JVSCapabilities *capabilitiesSetup)
 
 int disconnectJVS()
 {
-	return closeDevice();
+  return closeDevice();
 }
 
 int writeCapabilities(JVSPacket *outputPacket, JVSCapabilities *capabilities)
@@ -110,11 +95,21 @@ int writeCapabilities(JVSPacket *outputPacket, JVSCapabilities *capabilities)
 		outputPacket->length += 4;
 	}
 
+	if (capabilities->generalPurposeOutputs > 0)
+	{
+	  outputPacket->data[outputPacket->length] = CAP_GPO;
+	  outputPacket->data[outputPacket->length + 1] = capabilities->coins;
+	  outputPacket->data[outputPacket->length] = CAP_GPO;
+	  outputPacket->data[outputPacket->length + 1] = capabilities->generalPurposeOutputs;
+	  outputPacket->data[outputPacket->length + 2] = 0x00;
+	  outputPacket->data[outputPacket->length + 3] = CAP_END;
+	  outputPacket->length += 4;
+	}
+
 	// todo: Are these necessary?
 	   /* Code 0x07: General purpose SW inputs */ 0x07, 0x00, 0x08, 0x00,
 	              /* Code 0x13: Analog Output channels */ 0x13, 0x08, 0x00, 0x00,
 	              /* Code 0x06: Enter screen position ???*/ 0x06, 0x08, 0x08, 0x02,
-	              /* Code 0x12: General purpose driver */ 0x12,  0x08, 0x00, 0x00,
 
 	outputPacket->data[outputPacket->length] = CAP_END;
 	outputPacket->length += 1;
@@ -124,16 +119,15 @@ int writeCapabilities(JVSPacket *outputPacket, JVSCapabilities *capabilities)
 
 void debug(char *string)
 {
-	if (debugEnabled)
-	{
-		printf("Debug: %s\n", string);
-	}
+  if (debugEnabled)
+  {
+    printf("Debug: %s\n", string);
+  }
 }
 
 open_jvs_status_t processPacket(JVSPacket * inPacket, JVSPacket * outPacket)
 {
   open_jvs_status_t retval = OPEN_JVS_NO_RESPONSE;
-  // todo: use mutex between IO threads and JVS thread and work with deep copy of JVSState not have inconsisten data?
   JVSState *state = getState();
   JVSCapabilities *capabilities = getCapabilities();
 
@@ -157,25 +151,19 @@ open_jvs_status_t processPacket(JVSPacket * inPacket, JVSPacket * outPacket)
 
       /* inPacketIndex always points at an CMD byte offset */
       uint32_t inPacketIndex = CMD_IDX_CMD_STATUS;
-
-      printf("inPacketlen:%u \n", inPacket->length);
-      //uint32_t inPacketPayloadLenght = GET_MSG_REQ_PAYLOAD_LEN(inPacket->data);
       uint32_t inPacketPayloadLenght = GET_MSG_REQ_LEN(inPacket->data);
 
-      //uint32_t outPacketIndex = CMD_IDX_PAYLOAD;
-      //uint32_t outPacketPayloadLength = CMD_LEN_HEADER + CMD_LEN_CMD;
-
       outPacket->length = CMD_LEN_HEADER + CMD_LEN_CMD;
-
-
-      printf("inPacketIndex:%x :%x \n", inPacketIndex, (inPacketPayloadLenght - 1));
 
       while (inPacketIndex < (inPacketPayloadLenght - CMD_LEN_CHECKSUM))
       {
         uint32_t sizeCurrentCmd;
 
-        // DEBUG ONLY
-        printf("cmd:%x \n", inPacket->data[inPacketIndex]);
+        if(debugEnabled)
+        {
+          printf("cmd:%x \n", inPacket->data[inPacketIndex]);
+        }
+
         switch (inPacket->data[inPacketIndex])
         {
           case CMD_RESET:
@@ -301,17 +289,20 @@ open_jvs_status_t processPacket(JVSPacket * inPacket, JVSPacket * outPacket)
           {
             debug("CMD_READ_COINS\n");
 
+            uint8_t numberCoinSlots = inPacket->data[inPacketIndex + CMD_LEN_CMD + 0];
             outPacket->data[outPacket->length] = REPORT_SUCCESS;
             outPacket->length += 1;
 
-            outPacket->data[outPacket->length + 0] = 0x00;
-            outPacket->data[outPacket->length + 1] = state->coinCount;
-            outPacket->data[outPacket->length + 2] = 0x00;
-            outPacket->data[outPacket->length + 3] = 0x00;
-            outPacket->length += 4;
+            for(uint8_t i = 0; i < numberCoinSlots; i++)
+            {
+              // todo: Status stuff in high 3 bit of first byte (for now set to ok with bitmask)
+              // We have shared coins for all players
+              outPacket->data[outPacket->length + 0] = (state->coinCount << 8) & 0x1F;
+              outPacket->data[outPacket->length + 1] = (state->coinCount << 0) & 0xFF;
+              outPacket->length += 2;
+            }
 
             sizeCurrentCmd = CMD_LEN_CMD + 1;
-
           }
           break;
 
@@ -361,7 +352,6 @@ open_jvs_status_t processPacket(JVSPacket * inPacket, JVSPacket * outPacket)
 
           case CMD_DECREASE_COINS:
           {
-            //uint8_t slot_assignment = inPacket->data[inPacketIndex + CMD_LEN_CMD + 0];
             uint16_t coin_decrement = ((uint16_t) (inPacket->data[inPacketIndex + CMD_LEN_CMD + 1]) | ((uint16_t) (inPacket->data[inPacketIndex + CMD_LEN_CMD + 2]) << 8));
 
             /* Prevent underflow of coins */
@@ -378,8 +368,32 @@ open_jvs_status_t processPacket(JVSPacket * inPacket, JVSPacket * outPacket)
           }
           break;
 
+          case CMD_WRITE_GPO:
+          {
+            debug("CMD_WRITE_GPO");
+            uint8_t numberBytes= inPacket->data[inPacketIndex + CMD_LEN_CMD + 0];
+
+            for (uint8_t i = 0; i < numberBytes; i++)
+            {
+              uint8_t thing = inPacket->data[inPacketIndex + CMD_LEN_CMD + 1 + i];
+              for (int j = 7; j >= 0; j--)
+              {
+                unsigned char bit = (thing >> j) & 1;
+                printf("%u", bit);
+              }
+              printf(" ");
+            }
+
+            outPacket->data[outPacket->length] = REPORT_SUCCESS;
+            outPacket->length += 1;
+
+            sizeCurrentCmd = CMD_LEN_CMD + 1 + numberBytes;
+
+          }
+          break;
+
           // todo:Commands missing compared with older version - but they might not be of importance
-          // CMD_WRITEGPIO1, CMD_WRITEGPIOBYTE, CMD_WRITEGPIOBIT
+          // CMD_WRITEGPIOBYTE, CMD_WRITEGPIOBIT
           // CMD_SETMAINBOARDID
           // CMD_READSCREENPOS
 
@@ -389,7 +403,6 @@ open_jvs_status_t processPacket(JVSPacket * inPacket, JVSPacket * outPacket)
             printf("Warning: This command is not properly supported [0x%02hhX]\n", inPacket->data[inPacketIndex]);
           }
           break;
-
         }
 
         inPacketIndex += sizeCurrentCmd;
@@ -415,134 +428,6 @@ open_jvs_status_t processPacket(JVSPacket * inPacket, JVSPacket * outPacket)
 
   return retval;
 }
-
-
-
-
-//int processPacket()
-//{
-//	JVSState *state = getState();
-//	JVSCapabilities *capabilities = getCapabilities();
-//
-//	JVSPacket inPacket;
-//
-//	if (!readPacket(&inPacket))
-//	{
-//		printf("Error: Could not read packet\n");
-//		return 0;
-//	}
-//
-//	JVSPacket outputPacket;
-//	outputPacket.length = 0;
-//	outputPacket.destination = BUS_MASTER;
-//
-//	int index = 0;
-//
-//	while (index < inPacket.length - 1)
-//	{
-//		int size = 1;
-//		switch (inPacket.data[index])
-//		{
-//		case CMD_RESET:
-//			debug("CMD_RESET");
-//			size = 2;
-//			deviceID = -1;
-//			setSyncPin(0);
-//			break;
-//		case CMD_ASSIGN_ADDR:
-//			debug("CMD_ASSIGN_ADDR");
-//			size = 2;
-//			deviceID = inPacket.data[index + 1];
-//			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
-//			outputPacket.length += 1;
-//			setSyncPin(1);
-//			break;
-//		case CMD_REQUEST_ID:
-//			debug("CMD_REQUEST_ID");
-//			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
-//			memcpy(&outputPacket.data[outputPacket.length + 1], capabilities->name, strlen(capabilities->name) + 1);
-//			outputPacket.length += strlen(capabilities->name) + 2;
-//			break;
-//		case CMD_COMMAND_VERSION:
-//			debug("CMD_COMMAND_VERSION");
-//			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
-//			outputPacket.data[outputPacket.length + 1] = 0x11;
-//			outputPacket.length += 2;
-//			break;
-//		case CMD_JVS_VERSION:
-//			debug("CMD_JVS_VERSION");
-//			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
-//			outputPacket.data[outputPacket.length + 1] = 0x20;
-//			outputPacket.length += 2;
-//			break;
-//		case CMD_COMMS_VERSION:
-//			debug("CMD_COMMS_VERSION");
-//			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
-//			outputPacket.data[outputPacket.length + 1] = 0x10;
-//			outputPacket.length += 2;
-//			break;
-//		case CMD_CAPABILITIES:
-//			debug("CMD_CAPABILITIES");
-//			writeCapabilities(&outputPacket, capabilities);
-//			break;
-//		case CMD_READ_SWITCHES:
-//			debug("CMD_READSWITCHES");
-//			size = 3;
-//			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
-//			outputPacket.length += 1;
-//			for (int i = 0; i <= inPacket.data[index + 1]; i++)
-//			{
-//				for (int j = 0; j < inPacket.data[index + 2]; j++)
-//				{
-//					outputPacket.data[outputPacket.length] = (state->inputSwitch[i][j]);
-//					outputPacket.length += 1;
-//				}
-//			}
-//			break;
-//		case CMD_READ_COINS:
-//			debug("CMD_READ_COINS\n");
-//			size = 2;
-//			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
-//			outputPacket.data[outputPacket.length + 1] = 0x00;
-//			outputPacket.data[outputPacket.length + 2] = state->coinCount;
-//			outputPacket.data[outputPacket.length + 3] = 0x00;
-//			outputPacket.data[outputPacket.length + 4] = 0x00;
-//			outputPacket.length += 5;
-//			break;
-//		case CMD_READ_ANALOGS:
-//			debug("CMD_READ_ANALOGS\n");
-//			size = 2;
-//			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
-//			outputPacket.length += 1;
-//			for (int i = 0; i < inPacket.data[index + 1]; i++)
-//			{
-//				outputPacket.data[outputPacket.length] = state->analogueChannel[i];
-//				outputPacket.data[outputPacket.length + 1] = 0x00;
-//				outputPacket.length += 2;
-//			}
-//			break;
-//		case CMD_READ_ROTARY:
-//			debug("CMD_READ_ROTARY\n");
-//			size = 2;
-//			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
-//			outputPacket.length += 1;
-//			for (int i = 0; i < inPacket.data[index + 1]; i++)
-//			{
-//				outputPacket.data[outputPacket.length] = state->rotaryChannel[i];
-//				outputPacket.data[outputPacket.length + 1] = 0x00;
-//				outputPacket.length += 2;
-//			}
-//			break;
-//		default:
-//			printf("Warning: This command is not properly supported [0x%02hhX]\n", inPacket.data[index]);
-//		}
-//		index += size;
-//	}
-//
-//	outputPacket.destination = BUS_MASTER;
-//
-//	return writePacket(&outputPacket);
-//}
 
 #ifdef OFFLINE_MODE
 
@@ -578,14 +463,9 @@ void test_buffer ()
 
 open_jvs_status_t jvs_do(void)
 {
-
-  // todo: find better structure
   static bool timeout_enable = false;
-
   open_jvs_status_t retval = OPEN_JVS_ERR_OK;
-  //       uint32_t request_len_decoded;
   uint32_t request_len_raw;
-  //       uint32_t response_len = 0;
 
 #ifndef OFFLINE_MODE
   retval = read_serial(/*serial */ &read_buffer);
@@ -683,15 +563,6 @@ open_jvs_status_t jvs_do(void)
     }
   }
 
-  //       /* Remove processed request from circ read-buffer */
-  //       if (OPEN_JVS_ERR_OK == retval)
-  //       {
-  //         if (CIRC_BUFFER_ERR_OK != circ_buffer_discard (&read_buffer, request_len_raw))
-  //         {
-  //           retval = OPEN_JVS_ERR_REC_BUFFER;
-  //         }
-  //       }
-
   /* Check for inter-byte timeout */
   time (&time_current);
 
@@ -710,75 +581,6 @@ open_jvs_status_t jvs_do(void)
 
   return retval;
 }
-
-
-//int readPacket(JVSPacket *packet)
-//{
-//	unsigned char byte = 0;
-//	int n = readByte(&byte);
-//	while (byte != SYNC || n < 1)
-//	{
-//		n = readByte(&byte);
-//	}
-//
-//	readByte(&packet->destination);
-//	readByte(&packet->length);
-//
-//	unsigned char checksumComputed = packet->destination + packet->length;
-//
-//	for (int i = 0; i < packet->length - 1; i++)
-//	{
-//		readByte(&packet->data[i]);
-//		if (packet->data[i] == ESCAPE)
-//		{
-//			readByte(&packet->data[i]);
-//			packet->data[i] += 1;
-//		}
-//		checksumComputed = (checksumComputed + packet->data[i]) & 0xFF;
-//	}
-//	unsigned char checksumReceived = 0;
-//	readByte(&checksumReceived);
-//
-//	if (checksumReceived != checksumComputed)
-//	{
-//		printf("Error: The checksum is not correct\n");
-//		return 0;
-//	}
-//
-//	return 1;
-//}
-
-//int writePacket(JVSPacket *packet)
-//{
-//	/* Don't return anything if there isn't anything to write! */
-//	if (packet->length < 1)
-//	{
-//		return 1;
-//	}
-//
-//	writeByte(SYNC);
-//	writeByte(packet->destination);
-//	writeByte(packet->length + 2);
-//
-//	writeByte(STATUS_SUCCESS);
-//	unsigned char checksum = packet->destination + packet->length + 2 + STATUS_SUCCESS;
-//	for (int i = 0; i < packet->length; i++)
-//	{
-//		if (packet->data[i] == SYNC || packet->data[i] == ESCAPE)
-//		{
-//			writeByte(ESCAPE);
-//			writeByte(packet->data[i] - 1);
-//		}
-//		else
-//		{
-//			writeByte(packet->data[i]);
-//		}
-//		checksum = (checksum + packet->data[i]) & 0xFF;
-//	}
-//	writeByte(checksum);
-//	return 1;
-//}
-
 
 open_jvs_status_t find_start_of_message(circ_buffer_t * read_buffer)
 {

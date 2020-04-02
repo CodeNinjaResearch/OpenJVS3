@@ -9,7 +9,6 @@
 #include <string.h>
 #include "circ_buffer.h"
 
-
 void circ_buffer_init(circ_buffer_t * buffer)
 {
 	buffer->read_pos = 0;
@@ -163,7 +162,6 @@ circ_buffer_error_t circ_buffer_available(circ_buffer_t * buffer, uint32_t *out_
 	return retval;
 }
 
-// todo: pass print functions!
 void print_circ_buffer(circ_buffer_t * read_buffer)
 {
   circ_buffer_error_t retval = CIRC_BUFFER_ERR_OK;
