@@ -176,14 +176,11 @@ int processPacket()
 			outputPacket.length += 1;
 			outputPacket.data[outputPacket.length] = state->inputSwitch[0][0];
 			outputPacket.length += 1;
-			printf("Players %d\n", inPacket.data[index + 1]);
-			printf("Bytes Per Player %d\n", inPacket.data[index + 2]);
 			for (int i = 0; i < inPacket.data[index + 1]; i++)
 			{
 				for (int j = 0; j < inPacket.data[index + 2]; j++)
 				{
 					outputPacket.data[outputPacket.length] = (state->inputSwitch[i + 1][j]);
-					printf("Output: %d\n", outputPacket.data[outputPacket.length]);
 					outputPacket.length += 1;
 				}
 			}

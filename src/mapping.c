@@ -34,7 +34,7 @@ MappingOut findMapping(MODE mode, MappingStruct *m)
       return m->outsideMappings[i];
     }
   }
-  printf("Major mapping failure no outside found\n");
+  printf("No arcade map doesn't support: %s\n", modeEnumToString(mode));
   return m->outsideMappings[1];
 }
 

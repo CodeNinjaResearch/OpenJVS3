@@ -56,11 +56,11 @@ int setSwitch(int player, int switchNumber, int value)
 
 	if (value)
 	{
-		state.inputSwitch[player][switchDiv.quot] |= 1 << switchDiv.rem;
+		state.inputSwitch[player][switchDiv.quot] |= 1 << (7 - switchDiv.rem);
 	}
 	else
 	{
-		state.inputSwitch[player][switchDiv.quot] &= ~(1 << switchDiv.rem);
+		state.inputSwitch[player][switchDiv.quot] &= ~(1 << (7 - switchDiv.rem));
 	}
 
 	return 1;

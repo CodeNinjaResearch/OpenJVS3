@@ -43,7 +43,7 @@ int main(int argc, char **argv)
     }
 
     /* Setup the JVS Emulator with the RS485 path and capabilities */
-    if (!initJVS("/dev/ttyUSB0", &capabilities))
+    if (!initJVS("/dev/ttyUSB1", &capabilities))
     {
         printf("Error: Couldn't connect to serial\n");
         return 1;
