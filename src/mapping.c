@@ -4,7 +4,7 @@
 
 #define test_bit(bit, array) (array[bit / 8] & (1 << (bit % 8)))
 
-int processMaps(MappingStruct *m)
+int processMaps(Mapping *m)
 {
   for (int i = 0; i < m->insideCount; i++)
   {
@@ -25,7 +25,7 @@ int processMaps(MappingStruct *m)
   }
 }
 
-MappingOut findMapping(Mode mode, MappingStruct *m)
+MappingOut findMapping(Mode mode, Mapping *m)
 {
   for (int i = 0; i < m->outsideCount; i++)
   {
@@ -38,7 +38,7 @@ MappingOut findMapping(Mode mode, MappingStruct *m)
   return m->outsideMappings[1];
 }
 
-void printMapping(MappingStruct *m)
+void printMapping(Mapping *m)
 {
   printf("Buttons\n");
   for (int i = 0; i < MAX_EV_ITEMS; i++)
@@ -58,7 +58,7 @@ void printMapping(MappingStruct *m)
   }
 }
 
-pthread_t thread_id[256];
+pthread_t threadID[256];
 int threadCount = 0;
 int threadsRunning = 1;
 
@@ -68,7 +68,7 @@ int startThread(char *eventPath, char *mappingPathIn, char *mappingPathOut)
   strcpy(args->eventPath, eventPath);
   strcpy(args->mappingPathIn, mappingPathIn);
   strcpy(args->mappingPathOut, mappingPathOut);
-  pthread_create(&thread_id[threadCount], NULL, deviceThread, args);
+  pthread_create(&threadID[threadCount], NULL, deviceThread, args);
   threadCount++;
 }
 
@@ -78,7 +78,7 @@ void stopThreads()
   threadsRunning = 0;
   for (int i = 0; i < threadCount; i++)
   {
-    pthread_join(thread_id[i], NULL);
+    pthread_join(threadID[i], NULL);
   }
 }
 
@@ -95,7 +95,7 @@ void *deviceThread(void *_args)
 
   free(args);
 
-  MappingStruct m;
+  Mapping m;
 
   m.insideCount = processInMapFile(mappingPathIn, m.insideMappings);
   m.outsideCount = processOutMapFile(mappingPathOut, m.outsideMappings);
