@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
+#include <sys/select.h>
+
 #include "mapping.h"
 
 #define test_bit(bit, array) (array[bit / 8] & (1 << (bit % 8)))
@@ -111,7 +114,7 @@ void *deviceThread(void *_args)
   struct input_event event;
 
   int flags = fcntl(m.device_fd, F_GETFL, 0);
-  fcntl(m.device_fd, F_SETFL, flags | O_NONBLOCK);
+  fcntl(m.device_fd, F_SETFL, flags);
 
   int axisindex;
   uint8_t abs_bitmask[ABS_MAX / 8 + 1];
@@ -139,12 +142,39 @@ void *deviceThread(void *_args)
 
   printMapping(&m);
 
+  fd_set fd_set;
+  struct timeval tv;
+
   while (threadsRunning)
   {
-    if (read(m.device_fd, &event, sizeof event) > 0)
-    {
-      controlPrintStatus();
+    bool data_to_read = false;
 
+    FD_ZERO(&fd_set);
+    FD_SET(m.device_fd, &fd_set);
+
+    /* set blocking timeout to TIMEOUT_SELECT */
+    tv.tv_sec = 0;
+    tv.tv_usec = TIMEOUT_SELECT * 1000;
+
+    int n = select(m.device_fd + 1, &fd_set, NULL, NULL, &tv);
+    if (0 == n)
+    {
+      continue;
+    }
+    else if (n > 0)
+    {
+      if (FD_ISSET(m.device_fd, &fd_set))
+      {
+        data_to_read = true;
+      }
+    }
+    else
+    {
+      /* error from select */
+    }
+
+    if (data_to_read && (read(m.device_fd, &event, sizeof(event)) > 0))
+    {
       switch (event.type)
       {
       case EV_ABS:
@@ -188,7 +218,6 @@ void *deviceThread(void *_args)
             if (m.keyMapping[event.code].type == BUTTON)
             {
               setSwitch(1, m.keyMapping[event.code].channel, event.value);
-              setSwitch(2, m.keyMapping[event.code].channel, event.value);
             }
             else if (m.keyMapping[event.code].type == SYSTEM)
             {
@@ -200,6 +229,7 @@ void *deviceThread(void *_args)
 
         break;
       }
+      controlPrintStatus();
     }
   }
 

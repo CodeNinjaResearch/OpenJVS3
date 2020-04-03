@@ -4,9 +4,6 @@
 #include "definitions.h"
 #include "circ_buffer.h"
 
-/* Select timeout in ms*/
-#define TIMEOUT_SELECT 500
-
 /* Use for timeout between received bytes */
 time_t time_last_reception;
 time_t time_current;
@@ -14,23 +11,22 @@ time_t time_current;
 int deviceID = -1;
 int debugEnabled = 1;
 
-// todo: init read_buffer!!
 circ_buffer_t read_buffer;
 
 JVSPacket packetIn;
 JVSPacket packetOut;
 
 // DEBUG STUFF
-void print_msg (JVSPacket *msg)
+void print_msg(JVSPacket *msg)
 {
-  if(debugEnabled)
+  if (debugEnabled)
   {
-    printf ("Data:\n");
+    printf("Data:\n");
     for (uint32_t i = 0; i < msg->length; i++)
     {
-      printf ("%02X", msg->data[i]);
+      printf("%02X", msg->data[i]);
     }
-    printf ("\n");
+    printf("\n");
   }
 }
 
@@ -56,65 +52,65 @@ int disconnectJVS()
 
 int writeCapabilities(JVSPacket *outputPacket, JVSCapabilities *capabilities)
 {
-	outputPacket->data[outputPacket->length] = REPORT_SUCCESS;
-	outputPacket->length += 1;
+  outputPacket->data[outputPacket->length] = REPORT_SUCCESS;
+  outputPacket->length += 1;
 
-	if (capabilities->players > 0)
-	{
-		outputPacket->data[outputPacket->length] = CAP_PLAYERS;
-		outputPacket->data[outputPacket->length + 1] = capabilities->players;
-		outputPacket->data[outputPacket->length + 2] = capabilities->switches;
-		outputPacket->data[outputPacket->length + 3] = CAP_END;
-		outputPacket->length += 4;
-	}
+  if (capabilities->players > 0)
+  {
+    outputPacket->data[outputPacket->length] = CAP_PLAYERS;
+    outputPacket->data[outputPacket->length + 1] = capabilities->players;
+    outputPacket->data[outputPacket->length + 2] = capabilities->switches;
+    outputPacket->data[outputPacket->length + 3] = CAP_END;
+    outputPacket->length += 4;
+  }
 
-	if (capabilities->analogueInChannels > 0)
-	{
-		outputPacket->data[outputPacket->length] = CAP_ANALOG_IN;
-		outputPacket->data[outputPacket->length + 1] = capabilities->analogueInChannels;
-		outputPacket->data[outputPacket->length + 2] = capabilities->analogueInBits;
-		outputPacket->data[outputPacket->length + 3] = CAP_END;
-		outputPacket->length += 4;
-	}
+  if (capabilities->analogueInChannels > 0)
+  {
+    outputPacket->data[outputPacket->length] = CAP_ANALOG_IN;
+    outputPacket->data[outputPacket->length + 1] = capabilities->analogueInChannels;
+    outputPacket->data[outputPacket->length + 2] = capabilities->analogueInBits;
+    outputPacket->data[outputPacket->length + 3] = CAP_END;
+    outputPacket->length += 4;
+  }
 
-	if (capabilities->rotaryChannels > 0)
-	{
-		outputPacket->data[outputPacket->length] = CAP_ROTARY;
-		outputPacket->data[outputPacket->length + 1] = capabilities->rotaryChannels;
-		outputPacket->data[outputPacket->length + 2] = 0x00;
-		outputPacket->data[outputPacket->length + 3] = CAP_END;
-		outputPacket->length += 4;
-	}
+  if (capabilities->rotaryChannels > 0)
+  {
+    outputPacket->data[outputPacket->length] = CAP_ROTARY;
+    outputPacket->data[outputPacket->length + 1] = capabilities->rotaryChannels;
+    outputPacket->data[outputPacket->length + 2] = 0x00;
+    outputPacket->data[outputPacket->length + 3] = CAP_END;
+    outputPacket->length += 4;
+  }
 
-	if (capabilities->coins > 0)
-	{
-		outputPacket->data[outputPacket->length] = CAP_COINS;
-		outputPacket->data[outputPacket->length + 1] = capabilities->coins;
-		outputPacket->data[outputPacket->length + 2] = 0x00;
-		outputPacket->data[outputPacket->length + 3] = CAP_END;
-		outputPacket->length += 4;
-	}
+  if (capabilities->coins > 0)
+  {
+    outputPacket->data[outputPacket->length] = CAP_COINS;
+    outputPacket->data[outputPacket->length + 1] = capabilities->coins;
+    outputPacket->data[outputPacket->length + 2] = 0x00;
+    outputPacket->data[outputPacket->length + 3] = CAP_END;
+    outputPacket->length += 4;
+  }
 
-	if (capabilities->generalPurposeOutputs > 0)
-	{
-	  outputPacket->data[outputPacket->length] = CAP_GPO;
-	  outputPacket->data[outputPacket->length + 1] = capabilities->coins;
-	  outputPacket->data[outputPacket->length] = CAP_GPO;
-	  outputPacket->data[outputPacket->length + 1] = capabilities->generalPurposeOutputs;
-	  outputPacket->data[outputPacket->length + 2] = 0x00;
-	  outputPacket->data[outputPacket->length + 3] = CAP_END;
-	  outputPacket->length += 4;
-	}
+  if (capabilities->generalPurposeOutputs > 0)
+  {
+    outputPacket->data[outputPacket->length] = CAP_GPO;
+    outputPacket->data[outputPacket->length + 1] = capabilities->coins;
+    outputPacket->data[outputPacket->length] = CAP_GPO;
+    outputPacket->data[outputPacket->length + 1] = capabilities->generalPurposeOutputs;
+    outputPacket->data[outputPacket->length + 2] = 0x00;
+    outputPacket->data[outputPacket->length + 3] = CAP_END;
+    outputPacket->length += 4;
+  }
 
-	// todo: Are these necessary?
-	   /* Code 0x07: General purpose SW inputs */ 0x07, 0x00, 0x08, 0x00,
-	              /* Code 0x13: Analog Output channels */ 0x13, 0x08, 0x00, 0x00,
-	              /* Code 0x06: Enter screen position ???*/ 0x06, 0x08, 0x08, 0x02,
+  // todo: Are these necessary?
+  /* Code 0x07: General purpose SW inputs */ 0x07, 0x00, 0x08, 0x00,
+      /* Code 0x13: Analog Output channels */ 0x13, 0x08, 0x00, 0x00,
+      /* Code 0x06: Enter screen position ???*/ 0x06, 0x08, 0x08, 0x02,
 
-	outputPacket->data[outputPacket->length] = CAP_END;
-	outputPacket->length += 1;
+      outputPacket->data[outputPacket->length] = CAP_END;
+  outputPacket->length += 1;
 
-	return 1;
+  return 1;
 }
 
 void debug(char *string)
@@ -125,19 +121,19 @@ void debug(char *string)
   }
 }
 
-open_jvs_status_t processPacket(JVSPacket * inPacket, JVSPacket * outPacket)
+open_jvs_status_t processPacket(JVSPacket *inPacket, JVSPacket *outPacket)
 {
   open_jvs_status_t retval = OPEN_JVS_NO_RESPONSE;
   JVSState *state = getState();
   JVSCapabilities *capabilities = getCapabilities();
 
-  if((NULL == inPacket) || (NULL == outPacket) || (NULL == state) || (NULL == capabilities) )
+  if ((NULL == inPacket) || (NULL == outPacket) || (NULL == state) || (NULL == capabilities))
   {
-    printf("arg state:%p capabilities:%p \n", state,capabilities);
+    printf("arg state:%p capabilities:%p \n", state, capabilities);
     retval = OPEN_JVS_ERR_NULL;
   }
 
-  if(OPEN_JVS_NO_RESPONSE == retval)
+  if (OPEN_JVS_NO_RESPONSE == retval)
   {
     uint8_t node_dest = inPacket->data[CMD_IDX_NODE_NUMBER];
 
@@ -159,264 +155,262 @@ open_jvs_status_t processPacket(JVSPacket * inPacket, JVSPacket * outPacket)
       {
         uint32_t sizeCurrentCmd;
 
-        if(debugEnabled)
+        if (debugEnabled)
         {
           printf("cmd:%x \n", inPacket->data[inPacketIndex]);
         }
 
         switch (inPacket->data[inPacketIndex])
         {
-          case CMD_RESET:
+        case CMD_RESET:
+        {
+          debug("CMD_RESET");
+          deviceID = -1;
+          setSyncPin(0);
+
+          sizeCurrentCmd = CMD_LEN_CMD + 1;
+        }
+        break;
+
+        case CMD_ASSIGN_ADDR:
+        {
+          debug("CMD_ASSIGN_ADDR");
+          deviceID = (uint8_t)inPacket->data[inPacketIndex + CMD_LEN_CMD];
+
+          outPacket->data[outPacket->length] = REPORT_SUCCESS;
+          outPacket->length += 1;
+
+          setSyncPin(1);
+
+          sizeCurrentCmd = CMD_LEN_CMD + 1;
+        }
+        break;
+
+        case CMD_REQUEST_ID:
+        {
+          debug("CMD_REQUEST_ID");
+
+          outPacket->data[outPacket->length] = REPORT_SUCCESS;
+          outPacket->length += 1;
+
+          memcpy(&outPacket->data[outPacket->length], capabilities->name, strlen(capabilities->name));
+          outPacket->length += strlen(capabilities->name);
+
+          /* Add null termination */
+          outPacket->data[outPacket->length] = 0;
+          outPacket->length += 1;
+
+          sizeCurrentCmd = CMD_LEN_CMD + 0;
+        }
+        break;
+
+        case CMD_COMMAND_VERSION:
+        {
+          debug("CMD_COMMAND_VERSION");
+
+          outPacket->data[outPacket->length] = REPORT_SUCCESS;
+          outPacket->length += 1;
+
+          outPacket->data[outPacket->length] = capabilities->jvs_command_version;
+          outPacket->length += 1;
+
+          sizeCurrentCmd = CMD_LEN_CMD + 0;
+        }
+        break;
+
+        case CMD_JVS_VERSION:
+        {
+          debug("CMD_JVS_VERSION");
+          outPacket->data[outPacket->length] = REPORT_SUCCESS;
+          outPacket->length += 1;
+          outPacket->data[outPacket->length] = capabilities->jvs_version;
+          outPacket->length += 1;
+
+          sizeCurrentCmd = CMD_LEN_CMD + 0;
+        }
+        break;
+
+        case CMD_COMMS_VERSION:
+        {
+          debug("CMD_COMMS_VERSION");
+
+          outPacket->data[outPacket->length] = REPORT_SUCCESS;
+          outPacket->length += 1;
+          outPacket->data[outPacket->length] = capabilities->jvs_com_version;
+          outPacket->length += 1;
+
+          sizeCurrentCmd = CMD_LEN_CMD + 0;
+        }
+        break;
+
+        case CMD_CAPABILITIES:
+        {
+          debug("CMD_CAPABILITIES");
+          writeCapabilities(outPacket, capabilities);
+
+          sizeCurrentCmd = CMD_LEN_CMD + 0;
+        }
+        break;
+
+        case CMD_READ_SWITCHES:
+        {
+          debug("CMD_READSWITCHES");
+
+          uint8_t numberPlayers = inPacket->data[inPacketIndex + CMD_LEN_CMD + 0];
+          uint8_t numberBytesPerPlayer = inPacket->data[inPacketIndex + CMD_LEN_CMD + 1];
+
+          outPacket->data[outPacket->length] = REPORT_SUCCESS;
+          outPacket->length += 1;
+
+          /* System switches */
+          outPacket->data[outPacket->length] = (state->inputSwitch[0][0]);
+          outPacket->length += 1;
+
+          /* Player switches according to reuest*/
+          for (int i = 1; i < (numberPlayers + 1); i++)
           {
-            debug("CMD_RESET");
-            deviceID = -1;
-            setSyncPin(0);
-
-            sizeCurrentCmd = CMD_LEN_CMD + 1;
-          }
-          break;
-
-          case CMD_ASSIGN_ADDR:
-          {
-            debug("CMD_ASSIGN_ADDR");
-            deviceID = (uint8_t) inPacket->data[inPacketIndex + CMD_LEN_CMD];
-
-            outPacket->data[outPacket->length] = REPORT_SUCCESS;
-            outPacket->length += 1;
-
-            setSyncPin(1);
-
-            sizeCurrentCmd = CMD_LEN_CMD + 1;
-          }
-          break;
-
-          case CMD_REQUEST_ID:
-          {
-            debug("CMD_REQUEST_ID");
-
-            outPacket->data[outPacket->length] = REPORT_SUCCESS;
-            outPacket->length += 1;
-
-            memcpy(&outPacket->data[outPacket->length], capabilities->name, strlen(capabilities->name));
-            outPacket->length += strlen(capabilities->name);
-
-            /* Add null termination */
-            outPacket->data[outPacket->length] = 0;
-            outPacket->length += 1;
-
-            sizeCurrentCmd = CMD_LEN_CMD + 0;
-
-          }
-          break;
-
-          case CMD_COMMAND_VERSION:
-          {
-            debug("CMD_COMMAND_VERSION");
-
-            outPacket->data[outPacket->length] = REPORT_SUCCESS;
-            outPacket->length += 1;
-
-            outPacket->data[outPacket->length] = capabilities->jvs_command_version;
-            outPacket->length += 1;
-
-            sizeCurrentCmd = CMD_LEN_CMD + 0;
-          }
-          break;
-
-          case CMD_JVS_VERSION:
-          {
-            debug("CMD_JVS_VERSION");
-            outPacket->data[outPacket->length] = REPORT_SUCCESS;
-            outPacket->length += 1;
-            outPacket->data[outPacket->length] = capabilities->jvs_version;
-            outPacket->length += 1;
-
-            sizeCurrentCmd = CMD_LEN_CMD + 0;
-          }
-          break;
-
-          case CMD_COMMS_VERSION:
-          {
-            debug("CMD_COMMS_VERSION");
-
-            outPacket->data[outPacket->length] = REPORT_SUCCESS;
-            outPacket->length += 1;
-            outPacket->data[outPacket->length] = capabilities->jvs_com_version;
-            outPacket->length += 1;
-
-            sizeCurrentCmd = CMD_LEN_CMD + 0;
-          }
-          break;
-
-          case CMD_CAPABILITIES:
-          {
-            debug("CMD_CAPABILITIES");
-            writeCapabilities(outPacket, capabilities);
-
-            sizeCurrentCmd = CMD_LEN_CMD + 0;
-          }
-          break;
-
-          case CMD_READ_SWITCHES:
-          {
-            debug("CMD_READSWITCHES");
-
-            uint8_t numberPlayers = inPacket->data[inPacketIndex + CMD_LEN_CMD + 0];
-            uint8_t numberBytesPerPlayer = inPacket->data[inPacketIndex + CMD_LEN_CMD + 1];
-
-            outPacket->data[outPacket->length] = REPORT_SUCCESS;
-            outPacket->length += 1;
-
-            /* System switches */
-            outPacket->data[outPacket->length] = (state->inputSwitch[0][0]);
-            outPacket->length += 1;
-
-            /* Player switches according to reuest*/
-            for (int i = 1; i < (numberPlayers + 1); i++)
+            for (int j = 0; j < numberBytesPerPlayer; j++)
             {
-              for (int j = 0; j < numberBytesPerPlayer; j++)
-              {
-                outPacket->data[outPacket->length ] = (state->inputSwitch[i][j]);
-                outPacket->length += 1;
-              }
-            }
-
-            sizeCurrentCmd = CMD_LEN_CMD + 2;
-          }
-          break;
-
-          case CMD_READ_COINS:
-          {
-            debug("CMD_READ_COINS\n");
-
-            uint8_t numberCoinSlots = inPacket->data[inPacketIndex + CMD_LEN_CMD + 0];
-            outPacket->data[outPacket->length] = REPORT_SUCCESS;
-            outPacket->length += 1;
-
-            for(uint8_t i = 0; i < numberCoinSlots; i++)
-            {
-              // todo: Status stuff in high 3 bit of first byte (for now set to ok with bitmask)
-              // We have shared coins for all players
-              outPacket->data[outPacket->length + 0] = (state->coinCount << 8) & 0x1F;
-              outPacket->data[outPacket->length + 1] = (state->coinCount << 0) & 0xFF;
-              outPacket->length += 2;
-            }
-
-            sizeCurrentCmd = CMD_LEN_CMD + 1;
-          }
-          break;
-
-          case CMD_READ_ANALOGS:
-          {
-            debug("CMD_READ_ANALOGS\n");
-
-            uint8_t numberAnalogChannels = inPacket->data[inPacketIndex + CMD_LEN_CMD + 0];
-
-            outPacket->data[outPacket->length] = REPORT_SUCCESS;
-            outPacket->length += 1;
-
-            for (uint32_t i = 0; i < numberAnalogChannels; i++)
-            {
-              outPacket->data[outPacket->length]  = (state->analogueChannel[i] >> 8 ) & (capabilities->analogueMask >> 8);
-              outPacket->length += 1;
-
-              outPacket->data[outPacket->length]  = (state->analogueChannel[i] >> 0 ) & (capabilities->analogueMask >> 0);
+              outPacket->data[outPacket->length] = (state->inputSwitch[i][j]);
               outPacket->length += 1;
             }
-
-            sizeCurrentCmd = CMD_LEN_CMD + 1;
           }
-          break;
 
-          case CMD_READ_ROTARY:
+          sizeCurrentCmd = CMD_LEN_CMD + 2;
+        }
+        break;
+
+        case CMD_READ_COINS:
+        {
+          debug("CMD_READ_COINS\n");
+
+          uint8_t numberCoinSlots = inPacket->data[inPacketIndex + CMD_LEN_CMD + 0];
+          outPacket->data[outPacket->length] = REPORT_SUCCESS;
+          outPacket->length += 1;
+
+          for (uint8_t i = 0; i < numberCoinSlots; i++)
           {
-            debug("CMD_READ_ROTARY\n");
+            // todo: Status stuff in high 3 bit of first byte (for now set to ok with bitmask)
+            // We have shared coins for all players
+            outPacket->data[outPacket->length + 0] = (state->coinCount << 8) & 0x1F;
+            outPacket->data[outPacket->length + 1] = (state->coinCount << 0) & 0xFF;
+            outPacket->length += 2;
+          }
 
-            uint8_t numberAnalogChannels = inPacket->data[inPacketIndex + CMD_LEN_CMD + 0];
+          sizeCurrentCmd = CMD_LEN_CMD + 1;
+        }
+        break;
 
-            outPacket->data[outPacket->length] = REPORT_SUCCESS;
+        case CMD_READ_ANALOGS:
+        {
+          debug("CMD_READ_ANALOGS\n");
+
+          uint8_t numberAnalogChannels = inPacket->data[inPacketIndex + CMD_LEN_CMD + 0];
+
+          outPacket->data[outPacket->length] = REPORT_SUCCESS;
+          outPacket->length += 1;
+
+          for (uint32_t i = 0; i < numberAnalogChannels; i++)
+          {
+            outPacket->data[outPacket->length] = (state->analogueChannel[i] >> 8) & (capabilities->analogueMask >> 8);
             outPacket->length += 1;
 
-            for (uint32_t i = 0; i < numberAnalogChannels; i++)
-            {
-              outPacket->data[outPacket->length]  = (state->analogueChannel[i] >> 8 );
-              outPacket->length += 1;
-
-              outPacket->data[outPacket->length]  = (state->analogueChannel[i] >> 0 );
-              outPacket->length += 1;
-            }
-
-            sizeCurrentCmd = CMD_LEN_CMD + 1;
+            outPacket->data[outPacket->length] = (state->analogueChannel[i] >> 0) & (capabilities->analogueMask >> 0);
+            outPacket->length += 1;
           }
-          break;
 
-          case CMD_DECREASE_COINS:
+          sizeCurrentCmd = CMD_LEN_CMD + 1;
+        }
+        break;
+
+        case CMD_READ_ROTARY:
+        {
+          debug("CMD_READ_ROTARY\n");
+
+          uint8_t numberAnalogChannels = inPacket->data[inPacketIndex + CMD_LEN_CMD + 0];
+
+          outPacket->data[outPacket->length] = REPORT_SUCCESS;
+          outPacket->length += 1;
+
+          for (uint32_t i = 0; i < numberAnalogChannels; i++)
           {
-            uint16_t coin_decrement = ((uint16_t) (inPacket->data[inPacketIndex + CMD_LEN_CMD + 1]) | ((uint16_t) (inPacket->data[inPacketIndex + CMD_LEN_CMD + 2]) << 8));
-
-            /* Prevent underflow of coins */
-            if(coin_decrement > state->coinCount)
-            {
-              coin_decrement = state->coinCount;
-            }
-            state->coinCount -= coin_decrement;
-
-            outPacket->data[outPacket->length] = REPORT_SUCCESS;
+            outPacket->data[outPacket->length] = (state->analogueChannel[i] >> 8);
             outPacket->length += 1;
 
-            sizeCurrentCmd = CMD_LEN_CMD + 3;
-          }
-          break;
-
-          case CMD_WRITE_GPO:
-          {
-            debug("CMD_WRITE_GPO");
-            uint8_t numberBytes= inPacket->data[inPacketIndex + CMD_LEN_CMD + 0];
-
-            for (uint8_t i = 0; i < numberBytes; i++)
-            {
-              uint8_t thing = inPacket->data[inPacketIndex + CMD_LEN_CMD + 1 + i];
-              for (int j = 7; j >= 0; j--)
-              {
-                unsigned char bit = (thing >> j) & 1;
-                printf("%u", bit);
-              }
-              printf(" ");
-            }
-
-            outPacket->data[outPacket->length] = REPORT_SUCCESS;
+            outPacket->data[outPacket->length] = (state->analogueChannel[i] >> 0);
             outPacket->length += 1;
-
-            sizeCurrentCmd = CMD_LEN_CMD + 1 + numberBytes;
-
           }
-          break;
+
+          sizeCurrentCmd = CMD_LEN_CMD + 1;
+        }
+        break;
+
+        case CMD_DECREASE_COINS:
+        {
+          uint16_t coin_decrement = ((uint16_t)(inPacket->data[inPacketIndex + CMD_LEN_CMD + 1]) | ((uint16_t)(inPacket->data[inPacketIndex + CMD_LEN_CMD + 2]) << 8));
+
+          /* Prevent underflow of coins */
+          if (coin_decrement > state->coinCount)
+          {
+            coin_decrement = state->coinCount;
+          }
+          state->coinCount -= coin_decrement;
+
+          outPacket->data[outPacket->length] = REPORT_SUCCESS;
+          outPacket->length += 1;
+
+          sizeCurrentCmd = CMD_LEN_CMD + 3;
+        }
+        break;
+
+        case CMD_WRITE_GPO:
+        {
+          debug("CMD_WRITE_GPO");
+          uint8_t numberBytes = inPacket->data[inPacketIndex + CMD_LEN_CMD + 0];
+
+          for (uint8_t i = 0; i < numberBytes; i++)
+          {
+            uint8_t thing = inPacket->data[inPacketIndex + CMD_LEN_CMD + 1 + i];
+            for (int j = 7; j >= 0; j--)
+            {
+              unsigned char bit = (thing >> j) & 1;
+              printf("%u", bit);
+            }
+            printf(" ");
+          }
+
+          outPacket->data[outPacket->length] = REPORT_SUCCESS;
+          outPacket->length += 1;
+
+          sizeCurrentCmd = CMD_LEN_CMD + 1 + numberBytes;
+        }
+        break;
 
           // todo:Commands missing compared with older version - but they might not be of importance
           // CMD_WRITEGPIOBYTE, CMD_WRITEGPIOBIT
           // CMD_SETMAINBOARDID
           // CMD_READSCREENPOS
 
-          default:
-          {
-            retval = OPEN_JVS_ERR_INVALID_CMD;
-            printf("Warning: This command is not properly supported [0x%02hhX]\n", inPacket->data[inPacketIndex]);
-          }
-          break;
+        default:
+        {
+          retval = OPEN_JVS_ERR_INVALID_CMD;
+          printf("Warning: This command is not properly supported [0x%02hhX]\n", inPacket->data[inPacketIndex]);
+        }
+        break;
         }
 
         inPacketIndex += sizeCurrentCmd;
       }
 
       /* Is there a response with payload to send? */
-      if(outPacket->length > (CMD_LEN_HEADER + CMD_LEN_CMD))
+      if (outPacket->length > (CMD_LEN_HEADER + CMD_LEN_CMD))
       {
         /* Append byte for checksum */
         outPacket->length += 1;
 
         outPacket->data[CMD_IDX_SNY] = SYNC;
         outPacket->data[CMD_IDX_NODE_NUMBER] = NODE_BUS_MASTER;
-        outPacket->data[CMD_IDX_NUMBER_BYTES_PAYLOAD] =  outPacket->length - (CMD_LEN_NUMBER_BYTES + CMD_LEN_NODE + CMD_LEN_SYNC);
+        outPacket->data[CMD_IDX_NUMBER_BYTES_PAYLOAD] = outPacket->length - (CMD_LEN_NUMBER_BYTES + CMD_LEN_NODE + CMD_LEN_SYNC);
 
         // todo: Also support other statuses?
         outPacket->data[CMD_IDX_CMD_STATUS] = STATUS_SUCCESS;
@@ -431,7 +425,7 @@ open_jvs_status_t processPacket(JVSPacket * inPacket, JVSPacket * outPacket)
 
 #ifdef OFFLINE_MODE
 
-void test_buffer ()
+void test_buffer()
 {
   //uint8_t cmd[] = {0xE0, 0xFF, 0x03, 0xF0, 0xD9, 0xCB}; /* Reset ok */
   //uint8_t cmd[] = {0x23, 0x45, 0xFF ,0xE0, 0xFF, 0x03, 0xF0, 0xD9, 0xCB}; /* some bytes + Reset ok */
@@ -453,8 +447,8 @@ void test_buffer ()
   {
     if (CIRC_BUFFER_ERR_OK != circ_buffer_push(&read_buffer, cmd[i]))
     {
-      printf ("circ_buffer_push returned error!");
-      exit (-1);
+      printf("circ_buffer_push returned error!");
+      exit(-1);
     }
   }
 }
@@ -487,7 +481,7 @@ open_jvs_status_t jvs_do(void)
   {
     retval = find_start_of_message(&read_buffer);
 
-    if(debugEnabled)
+    if (debugEnabled)
     {
       debug("Received Message: \n");
       print_circ_buffer(&read_buffer);
@@ -499,7 +493,7 @@ open_jvs_status_t jvs_do(void)
   {
     retval = decode_escape_circ(&read_buffer, &packetIn, &request_len_raw);
 
-    if(debugEnabled)
+    if (debugEnabled)
     {
       printf("After decode_escape_circ: \n");
       print_msg(&packetIn);
@@ -511,7 +505,7 @@ open_jvs_status_t jvs_do(void)
   {
     retval = check_message(&packetIn);
 
-    if(debugEnabled)
+    if (debugEnabled)
     {
       printf("check_message: %d\n", retval);
     }
@@ -533,7 +527,7 @@ open_jvs_status_t jvs_do(void)
   {
     retval = processPacket(&packetIn, &packetOut);
 
-    if(debugEnabled)
+    if (debugEnabled)
     {
       printf("processPacket:%u response_len:%u ", retval, packetOut.length);
       print_msg(&packetOut);
@@ -558,31 +552,31 @@ open_jvs_status_t jvs_do(void)
     if (packetOut.length > 0)
     {
 #ifndef OFFLINE_MODE
-      retval = write_serial (/*serial,*/ packetOut.data, packetOut.length);
+      retval = write_serial(/*serial,*/ packetOut.data, packetOut.length);
 #endif
     }
   }
 
   /* Check for inter-byte timeout */
-  time (&time_current);
+  time(&time_current);
 
   if ((((time_current - time_last_reception) > TIMEOUT_INTER_BYTE) && timeout_enable))
   {
     deviceID = 0xFFFF;
     /* Flush receive buffer and start over */
-    circ_buffer_init (&read_buffer);
+    circ_buffer_init(&read_buffer);
 
     setSyncPin(0);
     if (debugEnabled)
     {
-      printf ("Timeout Reset buffer and address\n");
+      printf("Timeout Reset buffer and address\n");
     }
   }
 
   return retval;
 }
 
-open_jvs_status_t find_start_of_message(circ_buffer_t * read_buffer)
+open_jvs_status_t find_start_of_message(circ_buffer_t *read_buffer)
 {
   uint32_t bytes_available;
 
@@ -590,7 +584,7 @@ open_jvs_status_t find_start_of_message(circ_buffer_t * read_buffer)
 
   if (OPEN_JVS_ERR_OK == retval)
   {
-    if (CIRC_BUFFER_ERR_OK != circ_buffer_filled (read_buffer, &bytes_available))
+    if (CIRC_BUFFER_ERR_OK != circ_buffer_filled(read_buffer, &bytes_available))
     {
       retval = OPEN_JVS_ERR_REC_BUFFER;
     }
@@ -605,7 +599,7 @@ open_jvs_status_t find_start_of_message(circ_buffer_t * read_buffer)
     /* Find start of message */
     for (i = 0; i < bytes_available; i++)
     {
-      if (CIRC_BUFFER_ERR_OK != circ_buffer_peek (read_buffer, i, &data))
+      if (CIRC_BUFFER_ERR_OK != circ_buffer_peek(read_buffer, i, &data))
       {
         retval = OPEN_JVS_ERR_REC_BUFFER;
       }
@@ -637,7 +631,7 @@ open_jvs_status_t find_start_of_message(circ_buffer_t * read_buffer)
       /* Discard bytes before Sync */
       if (0 != i)
       {
-        if (CIRC_BUFFER_ERR_OK != circ_buffer_discard (read_buffer, i))
+        if (CIRC_BUFFER_ERR_OK != circ_buffer_discard(read_buffer, i))
         {
           retval = OPEN_JVS_ERR_REC_BUFFER;
         }
@@ -676,7 +670,7 @@ open_jvs_status_t decode_escape_circ(circ_buffer_t *read_buffer, JVSPacket *out_
 
   if (OPEN_JVS_ERR_OK == retval)
   {
-    if (CIRC_BUFFER_ERR_OK != circ_buffer_filled (read_buffer, &len_buffer_circ))
+    if (CIRC_BUFFER_ERR_OK != circ_buffer_filled(read_buffer, &len_buffer_circ))
     {
       retval = OPEN_JVS_ERR_REC_BUFFER;
     }
@@ -696,7 +690,7 @@ open_jvs_status_t decode_escape_circ(circ_buffer_t *read_buffer, JVSPacket *out_
 
     for (i = 0; i < len_buffer_circ; i++)
     {
-      if (CIRC_BUFFER_ERR_OK != circ_buffer_peek (read_buffer, i, &byte))
+      if (CIRC_BUFFER_ERR_OK != circ_buffer_peek(read_buffer, i, &byte))
       {
         retval = OPEN_JVS_ERR_REC_BUFFER;
         break;
@@ -745,7 +739,7 @@ open_jvs_status_t check_checksum(JVSPacket *packet)
   {
     uint8_t message_len = GET_MSG_REQ_LEN(packet->data);
 
-    if (calc_checksum ((packet->data + CMD_LEN_SYNC), message_len - CMD_LEN_SYNC - CMD_LEN_CHECKSUM) != packet->data[packet->length - 1])
+    if (calc_checksum((packet->data + CMD_LEN_SYNC), message_len - CMD_LEN_SYNC - CMD_LEN_CHECKSUM) != packet->data[packet->length - 1])
     {
       retval = OPEN_JVS_ERR_CHECKSUM;
     }
@@ -754,11 +748,11 @@ open_jvs_status_t check_checksum(JVSPacket *packet)
   return retval;
 }
 
-open_jvs_status_t check_message (JVSPacket * packet)
+open_jvs_status_t check_message(JVSPacket *packet)
 {
   open_jvs_status_t retval = OPEN_JVS_ERR_OK;
 
-  if(NULL == packet)
+  if (NULL == packet)
   {
     retval = OPEN_JVS_ERR_NULL;
   }
@@ -766,7 +760,7 @@ open_jvs_status_t check_message (JVSPacket * packet)
   /* Check if we have enough bytes to process packet*/
   if (OPEN_JVS_ERR_OK == retval)
   {
-    if ((packet->length < CMD_LEN_HEADER) || (packet->length  < (GET_MSG_REQ_LEN(packet->data))))
+    if ((packet->length < CMD_LEN_HEADER) || (packet->length < (GET_MSG_REQ_LEN(packet->data))))
     {
       retval = OPEN_JVS_ERR_WAIT_BYTES;
     }
@@ -802,7 +796,7 @@ open_jvs_status_t encode_escape(JVSPacket *packet)
   uint32_t len_new = 0;
   uint32_t i, j;
 
-  if(NULL == packet)
+  if (NULL == packet)
   {
     retval = OPEN_JVS_ERR_NULL;
   }
@@ -838,7 +832,7 @@ open_jvs_status_t encode_escape(JVSPacket *packet)
     /* Copy escaped packet */
     if (len_new != packet->length)
     {
-      memcpy (packet, temp, len_new);
+      memcpy(packet, temp, len_new);
     }
   }
 

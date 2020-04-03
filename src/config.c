@@ -3,6 +3,21 @@
 
 #include "config.h"
 
+void trimToken(char *str, int maxlen)
+{
+    int length = strnlen(str, maxlen);
+
+    /* Look for unwated paterrns and terminate the token*/
+    for (int i = 0; i < length; i++)
+    {
+        char val = *(str + i);
+        if (('\n' == val) || ('\r' == val))
+        {
+            *(str + i) = '\0';
+        }
+    }
+}
+
 int processConfig(char *filePath)
 {
     printf("Processing config from: %s\n", filePath);
@@ -10,16 +25,15 @@ int processConfig(char *filePath)
 
 void print_mapping_in(MappingIn *mappingIn)
 {
-  if(NULL != mappingIn)
-  {
-    printf("Type:%u Mode:%u Key/Channel:%u Min:%d Max:%d \n",
-           mappingIn->type,
-           mappingIn->mode,
-           mappingIn->channel,
-           mappingIn->min,
-           mappingIn->max
-           );
-  }
+    if (NULL != mappingIn)
+    {
+        printf("Type:%u Mode:%u Key/Channel:%u Min:%d Max:%d \n",
+               mappingIn->type,
+               mappingIn->mode,
+               mappingIn->channel,
+               mappingIn->min,
+               mappingIn->max);
+    }
 }
 
 int processInMapFile(char *filePath, MappingIn *mappingIn)
@@ -35,9 +49,11 @@ int processInMapFile(char *filePath, MappingIn *mappingIn)
             if ((buffer[0] != '#') && (buffer[0] != 0) && (buffer[0] != '\r') && (buffer[0] != '\n') && (strcmp(buffer, "") != 0))
             {
                 char *token = strtok(buffer, " ");
+                trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
+
                 IN_TYPE type = KEY;
                 /* KEY <CHANNEL> <MODE> */
-                if (strcmp(token, "KEY") == 0 || strcmp(token, "ABS") == 0  || strcmp(token, "REV_ABS") == 0)
+                if (strcmp(token, "KEY") == 0 || strcmp(token, "ABS") == 0 || strcmp(token, "REV_ABS") == 0)
                 {
                     int reverse = 0;
                     if (strcmp(token, "KEY") == 0)
@@ -52,13 +68,12 @@ int processInMapFile(char *filePath, MappingIn *mappingIn)
                     }
 
                     token = strtok(NULL, " ");
-                    if (token[strlen(token) - 1] == '\n')
-                        token[strlen(token) - 1] = '\0';
+                    trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
+
                     int channel = atoi(token);
 
                     token = strtok(NULL, " ");
-                    if (token[strlen(token) - 1] == '\n')
-                        token[strlen(token) - 1] = '\0';
+                    trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
 
                     MODE mode = modeStringToEnum(token);
 
@@ -77,9 +92,6 @@ int processInMapFile(char *filePath, MappingIn *mappingIn)
                         .mode = mode,
                         .min = min,
                         .max = max};
-
-                    // DEBUG only
-//                    print_mapping_in(&tempMapping);
 
                     mappingIn[count] = tempMapping;
                     count++;
@@ -122,13 +134,11 @@ int processOutMapFile(char *filePath, MappingOut *mappingIn)
                         type = SYSTEM;
 
                     token = strtok(NULL, " ");
-                    if (token[strlen(token) - 1] == '\n')
-                        token[strlen(token) - 1] = '\0';
+                    trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
                     int channel = atoi(token);
 
                     token = strtok(NULL, " ");
-                    if (token[strlen(token) - 1] == '\n')
-                        token[strlen(token) - 1] = '\0';
+                    trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
 
                     MappingOut tempMapping = {
                         .channel = channel,
