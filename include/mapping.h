@@ -41,11 +41,11 @@ typedef struct
     int outsideCount;
 
     /* Running the devices */
-    int device_fd;
-} MappingStruct;
-int processMaps(MappingStruct *m);
-MappingOut findMapping(MODE mode, MappingStruct *m);
-void printMapping(MappingStruct *m);
+    int deviceFd;
+} Mapping;
+int processMaps(Mapping *m);
+MappingOut findMapping(Mode mode, Mapping *m);
+void printMapping(Mapping *m);
 void *deviceThread(void *_args);
 int startThread(char *eventPath, char *mappingPathIn, char *mappingPathOut);
 void stopThreads();

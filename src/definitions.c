@@ -1,6 +1,6 @@
 #include "definitions.h"
 
-MODE modeStringToEnum(const char *str)
+Mode modeStringToEnum(const char *str)
 {
     int j;
     for (j = 0; j < sizeof(modeConversion) / sizeof(modeConversion[0]); ++j)
@@ -10,7 +10,7 @@ MODE modeStringToEnum(const char *str)
     return 0;
 }
 
-const char *modeEnumToString(MODE mode)
+const char *modeEnumToString(Mode mode)
 {
     int j;
     for (j = 0; j < sizeof(modeConversion) / sizeof(modeConversion[0]); ++j)

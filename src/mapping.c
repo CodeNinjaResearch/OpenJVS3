@@ -25,7 +25,7 @@ int processMaps(MappingStruct *m)
   }
 }
 
-MappingOut findMapping(MODE mode, MappingStruct *m)
+MappingOut findMapping(Mode mode, MappingStruct *m)
 {
   for (int i = 0; i < m->outsideCount; i++)
   {
@@ -34,7 +34,7 @@ MappingOut findMapping(MODE mode, MappingStruct *m)
       return m->outsideMappings[i];
     }
   }
-  printf("No arcade map doesn't support: %s\n", modeEnumToString(mode));
+  printf("Error: No arcade map doesn't support %s\n", modeEnumToString(mode));
   return m->outsideMappings[1];
 }
 
@@ -100,7 +100,7 @@ void *deviceThread(void *_args)
   m.insideCount = processInMapFile(mappingPathIn, m.insideMappings);
   m.outsideCount = processOutMapFile(mappingPathOut, m.outsideMappings);
 
-  if ((m.device_fd = open(eventPath, O_RDONLY)) == -1)
+  if ((m.deviceFd = open(eventPath, O_RDONLY)) == -1)
   {
     printf("mapping.c:initDevice(): Failed to open device file descriptor\n");
     exit(-1);
@@ -110,30 +110,30 @@ void *deviceThread(void *_args)
 
   struct input_event event;
 
-  int flags = fcntl(m.device_fd, F_GETFL, 0);
-  fcntl(m.device_fd, F_SETFL, flags | O_NONBLOCK);
+  int flags = fcntl(m.deviceFd, F_GETFL, 0);
+  fcntl(m.deviceFd, F_SETFL, flags | O_NONBLOCK);
 
-  int axisindex;
-  uint8_t abs_bitmask[ABS_MAX / 8 + 1];
-  float percent_deadzone;
-  struct input_absinfo abs_features;
+  int axisIndex;
+  uint8_t absoluteBitmask[ABS_MAX / 8 + 1];
+  float percentageDeadzone;
+  struct input_absinfo absoluteFeatures;
 
-  memset(abs_bitmask, 0, sizeof(abs_bitmask));
-  if (ioctl(m.device_fd, EVIOCGBIT(EV_ABS, sizeof(abs_bitmask)), abs_bitmask) < 0)
+  memset(absoluteBitmask, 0, sizeof(absoluteBitmask));
+  if (ioctl(m.deviceFd, EVIOCGBIT(EV_ABS, sizeof(absoluteBitmask)), absoluteBitmask) < 0)
   {
     perror("evdev ioctl");
   }
 
-  for (axisindex = 0; axisindex < ABS_MAX; ++axisindex)
+  for (axisIndex = 0; axisIndex < ABS_MAX; ++axisIndex)
   {
-    if (test_bit(axisindex, abs_bitmask))
+    if (test_bit(axisIndex, absoluteBitmask))
     {
-      if (ioctl(m.device_fd, EVIOCGABS(axisindex), &abs_features))
+      if (ioctl(m.deviceFd, EVIOCGABS(axisIndex), &absoluteFeatures))
       {
         perror("evdev EVIOCGABS ioctl");
       }
-      m.analogueMapping[axisindex].max = abs_features.maximum;
-      m.analogueMapping[axisindex].min = abs_features.minimum;
+      m.analogueMapping[axisIndex].max = absoluteFeatures.maximum;
+      m.analogueMapping[axisIndex].min = absoluteFeatures.minimum;
     }
   }
 
@@ -141,7 +141,7 @@ void *deviceThread(void *_args)
 
   while (threadsRunning)
   {
-    if (read(m.device_fd, &event, sizeof event) > 0)
+    if (read(m.deviceFd, &event, sizeof event) > 0)
     {
       //controlPrintStatus();
 
@@ -197,7 +197,7 @@ void *deviceThread(void *_args)
   }
 
   printf("Closing\n");
-  close(m.device_fd);
+  close(m.deviceFd);
 
   return 0;
 }

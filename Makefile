@@ -7,14 +7,14 @@ TARGET := bin/openjvs
 SRCEXT := c
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
-CFLAGS := -std=gnu99
+CFLAGS := -std=gnu99 -g
 DEFINES :=
 LIB := -pthread -lm
 INC := -I include
 
 $(TARGET): $(OBJECTS)
 	@echo " Linking:"
-	@echo "  $(CC) $^ -o $(TARGET) $(LIB)"; $(CC) $^ -o $(TARGET) $(LIB)
+	@echo "  $(CC) $^ -g -o $(TARGET) $(LIB)"; $(CC) $^ -o $(TARGET) $(LIB)
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 	@echo " Building:"

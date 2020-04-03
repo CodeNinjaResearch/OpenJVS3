@@ -9,6 +9,6 @@
 #include "io.h"
 
 int main(int argc, char **argv);
-void handle_sigint(int sig);
+void handleSignal(int sig);
 
 #endif // OPENJVS_H_

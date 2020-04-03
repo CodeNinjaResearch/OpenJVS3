@@ -43,11 +43,11 @@ typedef enum
     SYSTEM_7,
     SYSTEM_8,
     COIN
-} MODE;
+} Mode;
 
 const static struct
 {
-    MODE val;
+    Mode val;
     const char *str;
 } modeConversion[] = {
     {WHEEL, "WHEEL"},
@@ -92,7 +92,7 @@ typedef enum
 {
     KEY,
     ABS,
-} IN_TYPE;
+} InType;
 
 typedef enum
 {
@@ -102,13 +102,13 @@ typedef enum
     ANALOGUE,
     ROTARY,
     GUN
-} OUT_TYPE;
+} OutType;
 
 typedef struct
 {
     int channel;
-    IN_TYPE type;
-    MODE mode;
+    InType type;
+    Mode mode;
     int min;
     int max;
     int reverse;
@@ -117,14 +117,14 @@ typedef struct
 typedef struct
 {
     int channel;
-    OUT_TYPE type;
-    MODE mode;
+    OutType type;
+    Mode mode;
     int min;
     int max;
     int reverse;
 } MappingOut;
 
-MODE modeStringToEnum(const char *str);
-const char *modeEnumToString(MODE mode);
+Mode modeStringToEnum(const char *str);
+const char *modeEnumToString(Mode mode);
 
 #endif // DEFINITIONS_H_
