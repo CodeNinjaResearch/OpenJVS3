@@ -19,5 +19,5 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: OpenJVS3
-          path: build/bin/
+          path: build/
 
