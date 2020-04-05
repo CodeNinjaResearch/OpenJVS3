@@ -42,37 +42,38 @@ typedef struct
     uint8_t jvs_version;
     uint8_t jvs_com_version;
 
-    uint16_t analogueMask;
     uint16_t analogueMax;
 
 } JVSCapabilities;
 
 static const JVSCapabilities jvs_io_lindbergh =
-{
-    .name = "SEGA CORPORATION;I/O BD JVS;837-14572;Ver1.00;2005/10",
-    .players = 2,
-    .switches = 0xE,
-    .jvs_command_version = 0x13,
-    .jvs_version = 0x20,
-    .jvs_com_version = 0x10,
-    .analogueInChannels = 8,
-    .analogueInBits = 16,
-    .rotaryChannels = 8, // is this right?
-    .coins = 2,
+    {
+        .name = "SEGA CORPORATION;I/O BD JVS;837-14572;Ver1.00;2005/10",
+        .players = 2,
+        .switches = 0xE,
+        .jvs_command_version = 0x13,
+        .jvs_version = 0x20,
+        .jvs_com_version = 0x10,
+        .analogueInChannels = 8,
+        .analogueInBits = 10,
+        .rotaryChannels = 8, // is this right?
+        .coins = 2,
+        .generalPurposeOutputs = 20,
 };
 
-static const JVSCapabilities jvs_io_naomi=
-{
-    .name = "OpenJVS Emulator;I/O BD JVS;837-13551;Ver1.00;98/10",
-    .players = 2,
-    .switches = 16, // @Bobby: Why 16?
-    .jvs_command_version = 0x10,
-    .jvs_version = 0x11,
-    .jvs_com_version = 0x10,
-    .analogueInChannels = 8,
-    .analogueInBits = 8,
-    .rotaryChannels = 8, // is this right?
-    .coins = 2,
+static const JVSCapabilities jvs_io_naomi =
+    {
+        .name = "OpenJVS Emulator;I/O BD JVS;837-13551;Ver1.00;98/10",
+        .players = 2,
+        .switches = 16, // @Bobby: Why 16?
+        .jvs_command_version = 0x10,
+        .jvs_version = 0x11,
+        .jvs_com_version = 0x10,
+        .analogueInChannels = 8,
+        .analogueInBits = 8,
+        .rotaryChannels = 8, // is this right?
+        .coins = 2,
+        .generalPurposeOutputs = 6,
 };
 
 open_jvs_status_t initIO(/* JVSCapabilities *capabilitiesSetup*/);
@@ -82,10 +83,9 @@ int setAnalogue(int channel, int value);
 int setRotary(int channel, int value);
 void controlPrintStatus();
 
-
-open_jvs_status_t jvs_get_analog_mask(uint16_t * analog_mask);
+open_jvs_status_t jvs_get_analog_mask(uint16_t *analog_mask);
 open_jvs_status_t jvs_set_analog_mask(uint16_t mask);
-open_jvs_status_t jvs_get_analog_max(uint16_t * analog_max);
+open_jvs_status_t jvs_get_analog_max(uint16_t *analog_max);
 open_jvs_status_t jvs_set_analog_max(uint16_t max);
 
 JVSCapabilities *getCapabilities();

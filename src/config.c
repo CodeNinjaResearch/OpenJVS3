@@ -66,7 +66,6 @@ int processInMapFile(char *filePath, MappingIn *mappingIn)
                         type = ABS;
                         reverse = 1;
                     }
-
                     token = strtok(NULL, " ");
                     trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
 
@@ -91,7 +90,8 @@ int processInMapFile(char *filePath, MappingIn *mappingIn)
                         .type = type,
                         .mode = mode,
                         .min = min,
-                        .max = max};
+                        .max = max,
+                        .reverse = reverse};
 
                     mappingIn[count] = tempMapping;
                     count++;

@@ -4,10 +4,19 @@
 #include <stdio.h>
 #include <string.h>
 
+/* Enable usage of SYNC pin circuit */
+#define USE_SYNC_PIN
+
+#define SYNC_PIN_HW_FLOAT 1
+#define SYNC_PIN_HW_SWITCH 2
+
+/* Select hardware implementation to use */
+#define SNYC_PIN_IMPLEMENTAION SYNC_PIN_HW_SWITCH
+
 /* Select timeout in ms*/
 #define TIMEOUT_SELECT 500
 
-#define OFFLINE_MODE
+//#define OFFLINE_MODE
 
 #define min(x, y) ((x) <= (y)) ? (x) : (y)
 
@@ -25,7 +34,7 @@ typedef enum
     OPEN_JVS_ERR_OFFLINE,
     //       OPEN_JVS_ERR_REPORT,
     OPEN_JVS_ERR_JVS_PROFILE_NULL,
-    OPEN_JVS_ERR_ANALOG_MASK,
+    OPEN_JVS_ERR_ANALOG_BITS,
     OPEN_JVS_ERR_PACKET_BUFFER_OVERFLOW,
 
     /* Errors/Status that are fine */
@@ -41,6 +50,7 @@ typedef enum
     WHEEL,
     ACCELERATOR,
     BREAK,
+    START,
     SERVICE,
     TEST,
     GEAR_UP,
@@ -87,6 +97,7 @@ const static struct
         {ACCELERATOR, "ACCELERATOR"},
         {BREAK, "BREAK"},
         {SERVICE, "SERVICE"},
+        {START, "START"},
         {TEST, "TEST"},
         {GEAR_UP, "GEAR_UP"},
         {GEAR_DOWN, "GEAR_DOWN"},

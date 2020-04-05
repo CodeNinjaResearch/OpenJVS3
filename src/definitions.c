@@ -11,7 +11,6 @@ MODE modeStringToEnum(const char *str)
       return modeConversion[j].val;
     }
   }
-
   printf("mapping.c:modeStringToEnum: no such enum for string (%s)\n", str);
   return 0;
 }

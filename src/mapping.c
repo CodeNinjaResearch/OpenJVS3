@@ -2,7 +2,6 @@
 #include <string.h>
 #include <stdbool.h>
 #include <sys/select.h>
-
 #include "mapping.h"
 
 #define test_bit(bit, array) (array[bit / 8] & (1 << (bit % 8)))
@@ -142,28 +141,28 @@ void *deviceThread(void *_args)
 
   printMapping(&m);
 
-  fd_set fd_set;
+  fd_set file_descriptor;
   struct timeval tv;
 
   while (threadsRunning)
   {
     bool data_to_read = false;
 
-    FD_ZERO(&fd_set);
-    FD_SET(m.device_fd, &fd_set);
+    FD_ZERO(&file_descriptor);
+    FD_SET(m.device_fd, &file_descriptor);
 
     /* set blocking timeout to TIMEOUT_SELECT */
     tv.tv_sec = 0;
     tv.tv_usec = TIMEOUT_SELECT * 1000;
 
-    int n = select(m.device_fd + 1, &fd_set, NULL, NULL, &tv);
+    int n = select(m.device_fd + 1, &file_descriptor, NULL, NULL, &tv);
     if (0 == n)
     {
       continue;
     }
     else if (n > 0)
     {
-      if (FD_ISSET(m.device_fd, &fd_set))
+      if (FD_ISSET(m.device_fd, &file_descriptor))
       {
         data_to_read = true;
       }
@@ -173,14 +172,13 @@ void *deviceThread(void *_args)
       /* error from select */
     }
 
-    if (data_to_read && (read(m.device_fd, &event, sizeof(event)) > 0))
+    if (data_to_read && (sizeof(event) == read(m.device_fd, &event, sizeof(event))))
     {
       switch (event.type)
       {
       case EV_ABS:
         if (m.analogueMapping[event.code].type != NONE)
         {
-
           float x = event.value;
           float min = m.analogueMapping[event.code].min;
           float max = m.analogueMapping[event.code].max;
@@ -192,14 +190,13 @@ void *deviceThread(void *_args)
             max = temp;
           }
 
-          uint16_t anlog_max;
+          uint16_t analog_max;
 
           // todo: check return code for all critical calls here
-          jvs_get_analog_max(&anlog_max);
+          jvs_get_analog_max(&analog_max);
 
-          int scaled = (int)((float)(x - min) / (float)(max - min) * anlog_max);
+          int scaled = (int)(((x - min) / (max - min)) * ((float)analog_max));
 
-          printf("analogue (min %d, max %d, raw %d) %d -> %d\n", m.analogueMapping[event.code].min, m.analogueMapping[event.code].max, event.value, m.analogueMapping[event.code].channel, scaled);
           if (m.analogueMapping[event.code].type == ANALOGUE)
           {
             setAnalogue(m.analogueMapping[event.code].channel, scaled);
@@ -223,13 +220,13 @@ void *deviceThread(void *_args)
             {
               setSwitch(0, m.keyMapping[event.code].channel, event.value);
             }
-            printf("key %d -> %d\n", m.keyMapping[event.code].channel, event.value);
           }
         }
 
         break;
       }
-      controlPrintStatus();
+
+      // controlPrintStatus();
     }
   }
 

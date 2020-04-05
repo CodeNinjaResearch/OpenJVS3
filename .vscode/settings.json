@@ -6,7 +6,9 @@
         "definitions.h": "c",
         "device.h": "c",
         "stdbool.h": "c",
-        "cstdbool": "c"
+        "cstdbool": "c",
+        "jvs.h": "c",
+        "hw_hal.h": "c"
     },
     "editor.formatOnPaste": true,
     "editor.formatOnSave": true,

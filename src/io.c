@@ -1,6 +1,5 @@
 #include <string.h>
 #include "definitions.h"
-
 #include "io.h"
 
 JVSState state;
@@ -13,65 +12,57 @@ open_jvs_status_t initIO(void)
 
   capabilities = getCapabilities();
 
-  if(NULL == capabilities)
+  if (NULL == capabilities)
   {
     retval = OPEN_JVS_ERR_NULL;
   }
 
-  if(OPEN_JVS_ERR_OK == retval)
+  if (OPEN_JVS_ERR_OK == retval)
   {
     memset(capabilities, 0, sizeof(JVSCapabilities));
 
     // todo: use config to select template for JVS-IO ?
-    uint8_t idx = 0;
-    switch(idx)
+    uint8_t idx = 1;
+    switch (idx)
     {
-      default:
-      case 0:
-      {
-        memcpy(capabilities, &jvs_io_lindbergh, sizeof(JVSCapabilities));
-      }
-      break;
+    default:
+    case 0:
+    {
+      memcpy(capabilities, &jvs_io_lindbergh, sizeof(JVSCapabilities));
+    }
+    break;
 
-      case 1:
-      {
-        memcpy(capabilities, &jvs_io_naomi, sizeof(JVSCapabilities));
-      }
+    case 1:
+    {
+      memcpy(capabilities, &jvs_io_naomi, sizeof(JVSCapabilities));
+    }
     }
   }
 
-  /* Set analogue mask */
-  if(OPEN_JVS_ERR_NULL == retval)
+  /* Set analogue according to numver of bits */
+  if (OPEN_JVS_ERR_OK == retval)
   {
-    if(capabilities->analogueInBits > (sizeof(capabilities->analogueMask) * 8))
+    if (capabilities->analogueInBits > 16)
     {
-      retval = OPEN_JVS_ERR_ANALOG_MASK;
+      retval = OPEN_JVS_ERR_ANALOG_BITS;
     }
 
     /* Set max value that is supported for the set number of bits set for the analog channel */
 
     uint16_t max = 0;
-    uint16_t mask = 0;
-
     printf("jvs_analog_number_bits:%d\n", capabilities->analogueInBits);
 
-    for(int16_t i = 0; i < capabilities->analogueInBits; i++)
+    for (int16_t i = 0; i < capabilities->analogueInBits; i++)
     {
       max |= (1 << i);
     }
 
-    for(int16_t i = 0; i <= (capabilities->analogueInBits - 1); i++)
+    if (OPEN_JVS_ERR_OK == retval)
     {
-      mask |= (1 << (((sizeof(capabilities->analogueMask) * 8)-1) -i));
+      retval = jvs_set_analog_max(max);
     }
 
-    capabilities->analogueMask = mask;
-    capabilities->analogueMax = max;
-
-    // DEBUG ONLY
-    printf("jvs_analog_max:%04X \n", capabilities->analogueMask );
-    printf("jvs_analog_mask:%04X \n", capabilities->analogueMask);
-
+    printf("jvs_analog_max:%04X \n", capabilities->analogueMax);
   }
 
   div_t switchDiv = div(capabilities->switches, 8);
@@ -99,71 +90,24 @@ open_jvs_status_t initIO(void)
   return retval;
 }
 
-open_jvs_status_t jvs_get_analog_mask(uint16_t * analog_mask)
+open_jvs_status_t jvs_get_analog_max(uint16_t *analog_max)
 {
   open_jvs_status_t retval = OPEN_JVS_ERR_OK;
   JVSCapabilities *capabilities;
 
   capabilities = getCapabilities();
 
-  if(NULL == capabilities)
+  if (NULL == capabilities)
   {
     retval = OPEN_JVS_ERR_NULL;
   }
 
-  if(NULL == analog_mask)
+  if (NULL == analog_max)
   {
     retval = OPEN_JVS_ERR_NULL;
   }
 
-  if(OPEN_JVS_ERR_OK == retval)
-  {
-    *analog_mask = capabilities->analogueMask;
-  }
-
-  return retval;
-}
-
-open_jvs_status_t jvs_set_analog_mask(uint16_t mask)
-{
-  open_jvs_status_t retval = OPEN_JVS_ERR_OK;
-
-  JVSCapabilities *capabilities;
-
-    capabilities = getCapabilities();
-
-    if(NULL == capabilities)
-    {
-      retval = OPEN_JVS_ERR_NULL;
-    }
-
-    if(OPEN_JVS_ERR_OK == retval)
-    {
-      capabilities->analogueMask = mask;
-    }
-
-  return retval;
-}
-
-
-open_jvs_status_t jvs_get_analog_max(uint16_t * analog_max)
-{
-  open_jvs_status_t retval = OPEN_JVS_ERR_OK;
-  JVSCapabilities *capabilities;
-
-  capabilities = getCapabilities();
-
-  if(NULL == capabilities)
-  {
-    retval = OPEN_JVS_ERR_NULL;
-  }
-
-  if(NULL == analog_max)
-  {
-    retval = OPEN_JVS_ERR_NULL;
-  }
-
-  if(OPEN_JVS_ERR_OK == retval)
+  if (OPEN_JVS_ERR_OK == retval)
   {
     *analog_max = capabilities->analogueMax;
   }
@@ -177,21 +121,20 @@ open_jvs_status_t jvs_set_analog_max(uint16_t max)
 
   JVSCapabilities *capabilities;
 
-    capabilities = getCapabilities();
+  capabilities = getCapabilities();
 
-    if(NULL == capabilities)
-    {
-      retval = OPEN_JVS_ERR_NULL;
-    }
+  if (NULL == capabilities)
+  {
+    retval = OPEN_JVS_ERR_NULL;
+  }
 
-    if(OPEN_JVS_ERR_OK == retval)
-    {
-      capabilities->analogueMax = max;
-    }
+  if (OPEN_JVS_ERR_OK == retval)
+  {
+    capabilities->analogueMax = max;
+  }
 
   return retval;
 }
-
 
 int setSwitch(int player, int switchNumber, int value)
 {
@@ -215,7 +158,7 @@ int setSwitch(int player, int switchNumber, int value)
 
   if (value)
   {
-    state.inputSwitch[player][switchDiv.quot] |=  1 << (7 - switchDiv.rem);
+    state.inputSwitch[player][switchDiv.quot] |= 1 << (7 - switchDiv.rem);
   }
   else
   {
@@ -227,8 +170,8 @@ int setSwitch(int player, int switchNumber, int value)
 
 int incrementCoin()
 {
-	state.coinCount++;
-	return 1;
+  state.coinCount++;
+  return 1;
 }
 int setAnalogue(int channel, int value)
 {
@@ -259,7 +202,7 @@ int setRotary(int channel, int value)
 
 JVSState *getState()
 {
-	return &state;
+  return &state;
 }
 
 void controlPrintStatus()
@@ -289,7 +232,7 @@ void controlPrintStatus()
   printf("Analogue:\n\t");
   for (int channel = 0; channel < getCapabilities()->analogueInChannels; channel++)
   {
-    printf("%d ", (unsigned char)getState()->analogueChannel[channel]);
+    printf("%d ", getState()->analogueChannel[channel]);
   }
   printf("\n");
 
@@ -303,5 +246,4 @@ void controlPrintStatus()
 
   /* Print Coin Count */
   printf("Coin:\n\t%d\n", getState()->coinCount);
-
 }

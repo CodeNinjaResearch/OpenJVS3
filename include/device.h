@@ -24,9 +24,8 @@ int initDevice(char *devicePath);
 int closeDevice();
 int setSerialAttributes(int fd, int myBaud);
 int setSerialLowLatency(int fd);
-int setSyncPin(int a);
 
 open_jvs_status_t write_serial(/*int serial,*/ uint8_t *data, uint32_t data_len);
-open_jvs_status_t read_serial( /*int serial, */ circ_buffer_t * read_buffer);
+open_jvs_status_t read_serial(/*int serial, */ circ_buffer_t *read_buffer);
 
 #endif // DEVICE_H_

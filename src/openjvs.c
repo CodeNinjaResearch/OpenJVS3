@@ -3,7 +3,6 @@
 #include "stdio.h"
 #include <unistd.h>
 
-// DEBUG
 int running = 1;
 
 circ_buffer_t read_buffer;
@@ -51,7 +50,7 @@ int main(int argc, char **argv)
 
   if (OPEN_JVS_ERR_OK != retval)
   {
-    printf("initJVS() returned:%d \n",retval);
+    printf("initJVS() returned:%d \n", retval);
     return 1;
   }
 
@@ -62,32 +61,37 @@ int main(int argc, char **argv)
 
 #ifdef OFFLINE_MODE
     // Give time for debug prints of task started later
-    sleep(5);
+    sleep(30);
     retval = OPEN_JVS_ERR_OFFLINE;
+    return 0;
 #endif
 
-    switch(retval)
+    switch (retval)
     {
-      /* Status */
-      case OPEN_JVS_ERR_TIMEOUT:
-      case OPEN_JVS_ERR_SYNC_BYTE:
-      case OPEN_JVS_NO_RESPONSE:
-      case OPEN_JVS_ERR_WAIT_BYTES:
+    /* Status that are normal */
+    case OPEN_JVS_ERR_OK:
+    case OPEN_JVS_ERR_TIMEOUT:
+    case OPEN_JVS_ERR_SYNC_BYTE:
+    case OPEN_JVS_NO_RESPONSE:
+    case OPEN_JVS_ERR_WAIT_BYTES:
+      // todo: Checksum error can occur when arcade device is rebooting therefore these are non critical but for testing I want to see all error that are not normal
+      //case OPEN_JVS_ERR_CHECKSUM:
       {
-        if(debugEnabled)
-        {
-          printf("jvs main loop returned:%d \n", retval);
-        }
+        // if (debugEnabled)
+        // {
+        //   printf("jvs main loop returned:%d \n", retval);
+        // }
       }
       break;
 
-      /* Errors */
-      default:
-      {
-        printf("jvs main loop returned:%d \n", retval);
+    /* Errors */
+    default:
+    {
+      printf("***** jvs main loop returned:%d ****\n", retval);
 
-        running = false;
-      }
+      // todo: uncomment later once all non-critical errors defined
+      //running = false;
+    }
     }
   }
 
@@ -103,10 +107,10 @@ int main(int argc, char **argv)
 
 void handle_sigint(int sig)
 {
-    if (sig == 2)
-    {
-        printf("Debug: closing\n");
-        stopThreads();
-        exit(0);
-    }
+  if (sig == 2)
+  {
+    printf("Debug: closing\n");
+    stopThreads();
+    exit(0);
+  }
 }
