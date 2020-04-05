@@ -1,0 +1,22 @@
+cmake_minimum_required(VERSION 3.10)
+
+project(openjvs)
+
+find_package(Threads REQUIRED)
+
+include_directories(${THREAD_INLCUDE_DIRS} ${PROJECT_SOURCE_DIR}/include)
+
+FILE(GLOB Sources src/*.c) #Assume we want to include everything from src/
+
+add_executable(${PROJECT_NAME}
+        ${Sources}
+)
+
+set_target_properties(${PROJECT_NAME} PROPERTIES
+        C_STANDARD 99
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+)
+
+target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)
+
+target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
