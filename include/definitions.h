@@ -5,7 +5,7 @@
 #include <string.h>
 
 /* Enable usage of SYNC pin circuit */
-#define USE_SYNC_PIN
+//#define USE_SYNC_PIN
 
 #define SYNC_PIN_HW_FLOAT 1
 #define SYNC_PIN_HW_SWITCH 2
