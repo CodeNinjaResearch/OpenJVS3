@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
+#include <sys/select.h>
 #include "mapping.h"
 
 #define test_bit(bit, array) (array[bit / 8] & (1 << (bit % 8)))
@@ -139,30 +141,62 @@ void *deviceThread(void *_args)
 
   //printMapping(&m);
 
+  fd_set file_descriptor;
+  struct timeval tv;
+
   while (threadsRunning)
   {
-    if (read(m.deviceFd, &event, sizeof event) > 0)
-    {
-      //controlPrintStatus();
+    bool data_to_read = false;
 
+    FD_ZERO(&file_descriptor);
+    FD_SET(m.deviceFd, &file_descriptor);
+
+    /* set blocking timeout to TIMEOUT_SELECT */
+    tv.tv_sec = 0;
+    tv.tv_usec = TIMEOUT_SELECT * 1000;
+
+    int n = select(m.deviceFd + 1, &file_descriptor, NULL, NULL, &tv);
+    if (0 == n)
+    {
+      continue;
+    }
+    else if (n > 0)
+    {
+      if (FD_ISSET(m.deviceFd, &file_descriptor))
+      {
+        data_to_read = true;
+      }
+    }
+    else
+    {
+      /* error from select */
+    }
+
+    if (data_to_read && (sizeof(event) == read(m.deviceFd, &event, sizeof(event))))
+    {
       switch (event.type)
       {
       case EV_ABS:
         if (m.analogueMapping[event.code].type != NONE)
         {
-
           float x = event.value;
           float min = m.analogueMapping[event.code].min;
           float max = m.analogueMapping[event.code].max;
+
           if (m.analogueMapping[event.code].reverse)
           {
             float temp = min;
             min = max;
             max = temp;
           }
-          int scaled = (int)((float)(x - min) / (float)(max - min) * 255);
 
-          //printf("analogue (min %d, max %d, raw %d) %d -> %d\n", m.analogueMapping[event.code].min, m.analogueMapping[event.code].max, event.value, m.analogueMapping[event.code].channel, scaled);
+          uint16_t analog_max;
+
+          // todo: check return code for all critical calls here
+          jvs_get_analog_max(&analog_max);
+
+          int scaled = (int)(((x - min) / (max - min)) * ((float)analog_max));
+
           if (m.analogueMapping[event.code].type == ANALOGUE)
           {
             setAnalogue(m.analogueMapping[event.code].channel, scaled);
@@ -187,12 +221,13 @@ void *deviceThread(void *_args)
             {
               setSwitch(0, m.keyMapping[event.code].channel, event.value);
             }
-            //printf("key %d -> %d\n", m.keyMapping[event.code].channel, event.value);
           }
         }
 
         break;
       }
+
+      // controlPrintStatus();
     }
   }
 

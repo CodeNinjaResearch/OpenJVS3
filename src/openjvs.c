@@ -1,39 +1,26 @@
+#include <circ_buffer.h>
 #include "openjvs.h"
+#include "stdio.h"
+#include <unistd.h>
 
 int running = 1;
 
+circ_buffer_t read_buffer;
+/* Setup the IO we are trying to emulate */
+JVSCapabilities capabilities;
+
+JVSCapabilities *getCapabilities()
+{
+  return &capabilities;
+}
+
 int main(int argc, char **argv)
 {
+  open_jvs_status_t retval = OPEN_JVS_ERR_OK;
+
   signal(SIGINT, handleSignal);
 
   printf("OpenJVS3\n");
-
-  for (int i = 0; i < argc; i++)
-  {
-    if (!strcmp("--add-device", argv[i]))
-    {
-      printf("Welcome to adding a device\n");
-      exit(-1);
-    }
-
-    if (!strcmp("--version", argv[i]))
-    {
-      printf("Release: 3.1.1, Input Engine: 2.0, JVS Engine: 3.0.1\n");
-      printf("https://github.com/bobbydilley/OpenJVS\n");
-      exit(-1);
-    }
-  }
-
-  /* Setup the IO we are trying to emulate */
-  JVSCapabilities capabilities;
-  capabilities.name = "OpenJVS3 Emulator;I/O BD JVS;837-13551;Ver1.00;98/10";
-  capabilities.players = 2;
-  capabilities.switches = 16;
-  capabilities.analogueInBits = 8;
-  capabilities.analogueInChannels = 8;
-  capabilities.rotaryChannels = 8;
-  capabilities.generalPurposeOutputs = 0;
-  capabilities.coins = 2;
 
   /* Setup the inputs on the computer */
   if (!initInput())
@@ -43,19 +30,52 @@ int main(int argc, char **argv)
   }
 
   /* Setup the JVS Emulator with the RS485 path and capabilities */
-  if (!initJVS("/dev/ttyUSB0", &capabilities))
+  retval = initJVS("/dev/ttyUSB0", &capabilities);
+
+  if (OPEN_JVS_ERR_OK != retval)
   {
-    printf("Error: Couldn't connect to serial\n");
+    printf("initJVS() returned:%d \n", retval);
     return 1;
   }
 
   /* Process packets forever */
   while (running)
   {
-    if (!processPacket())
+    retval = jvs_do();
+
+#ifdef OFFLINE_MODE
+    // Give time for debug prints of task started later
+    sleep(30);
+    retval = OPEN_JVS_ERR_OFFLINE;
+    return 0;
+#endif
+
+    switch (retval)
     {
-      printf("Error: Failed to process packet properly.");
-      return 1;
+    /* Status that are normal */
+    case OPEN_JVS_ERR_OK:
+    case OPEN_JVS_ERR_TIMEOUT:
+    case OPEN_JVS_ERR_SYNC_BYTE:
+    case OPEN_JVS_NO_RESPONSE:
+    case OPEN_JVS_ERR_WAIT_BYTES:
+      // todo: Checksum error can occur when arcade device is rebooting therefore these are non critical but for testing I want to see all error that are not normal
+      //case OPEN_JVS_ERR_CHECKSUM:
+      {
+        // if (debugEnabled)
+        // {
+        //   printf("jvs main loop returned:%d \n", retval);
+        // }
+      }
+      break;
+
+    /* Errors */
+    default:
+    {
+      printf("***** jvs main loop returned:%d ****\n", retval);
+
+      // todo: uncomment later once all non-critical errors defined
+      //running = false;
+    }
     }
   }
 

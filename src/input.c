@@ -83,5 +83,6 @@ int scanInputs(void)
         free(namelist[i]);
     }
     free(namelist);
+
     return 1;
 }

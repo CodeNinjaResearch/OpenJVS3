@@ -17,19 +17,32 @@
 #include "io.h"
 #include "config.h"
 
+/* Global definitions */
+
+extern int debugEnabled;
+
 typedef struct
 {
-    unsigned char destination;
-    unsigned char length;
-    unsigned char data[MAX_PACKET_SIZE];
+//    uint8_t destination;
+    uint32_t length;
+
+    uint8_t data[MAX_PACKET_SIZE];
 } JVSPacket;
 
-int initJVS(char *devicePath, JVSCapabilities *capabilitiesSetup);
+open_jvs_status_t initJVS(char *devicePath, JVSCapabilities *capabilitiesSetup);
 int disconnectJVS();
 int writeCapabilities(JVSPacket *outputPacket, JVSCapabilities *capabilities);
 int readPacket(JVSPacket *packet);
 int writePacket(JVSPacket *packet);
-int processPacket();
+open_jvs_status_t processPacket2(JVSPacket * inPacket, JVSPacket * outPacket);
 void debug(char *string);
+
+open_jvs_status_t jvs_do(void);
+
+open_jvs_status_t find_start_of_message(circ_buffer_t * read_buffer);
+open_jvs_status_t decode_escape_circ (circ_buffer_t * read_buffer , JVSPacket * out_packet_decoded,  uint32_t *out_raw_length);
+open_jvs_status_t check_message(JVSPacket * packet);
+uint8_t calc_checksum(uint8_t *message, uint8_t len);
+open_jvs_status_t encode_escape (JVSPacket * packet);
 
 #endif // JVS_H_
