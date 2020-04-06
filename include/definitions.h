@@ -128,6 +128,7 @@ const static struct
     {SYSTEM_6, "SYSTEM_6"},
     {SYSTEM_7, "SYSTEM_7"},
     {SYSTEM_8, "SYSTEM_8"},
+    {START, "START"},
     {COIN, "COIN"}};
 
 typedef enum
