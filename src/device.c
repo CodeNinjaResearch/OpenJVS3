@@ -1,109 +1,124 @@
 #include "device.h"
 
 int serialIO = -1;
+int sync_pin = 12;
 
 int initDevice(char *devicePath)
 {
-	if ((serialIO = open(devicePath, O_RDWR | O_NOCTTY | O_SYNC)) < 0)
-	{
-		printf("Failed to open %s\n", devicePath);
-		return 0;
-	}
+  if ((serialIO = open(devicePath, O_RDWR | O_NOCTTY | O_SYNC)) < 0)
+  {
+    printf("Failed to open %s\n", devicePath);
+    return 0;
+  }
 
-	/* Setup the serial connection */
-	setSerialAttributes(serialIO, B115200);
-	setSerialLowLatency(serialIO);
+  /* Setup the serial connection */
+  setSerialAttributes(serialIO, B115200);
+  setSerialLowLatency(serialIO);
 
-	usleep(100 * 1000); //required to make flush work, for some reason
+  usleep(100 * 1000); //required to make flush work, for some reason
 
-	tcflush(serialIO, TCIOFLUSH);
-	usleep(100 * 1000); //required to make flush work, for some reason
+  tcflush(serialIO, TCIOFLUSH);
+  usleep(100 * 1000); //required to make flush work, for some reason
 
-	setSyncPin(0); // Float Sync
+  /* GPIO SYNC PINS */
+  if (GPIOExport(sync_pin) == -1)
+  {
+    printf("Warning: Sync pin %d not available\n", sync_pin);
+  }
 
-	return 1;
+  setSyncPin(0); // Float Sync
+
+  return 1;
 }
 
 int closeDevice()
 {
-	return close(serialIO);
+  return close(serialIO);
 }
 
 int readBytes(char *buffer, int amount)
 {
-	return read(serialIO, buffer, amount);
+  return read(serialIO, buffer, amount);
 }
 
 int writeBytes(char *buffer, int amount)
 {
-	return write(serialIO, buffer, amount);
+  return write(serialIO, buffer, amount);
 }
 
 /* Sets the configuration of the serial port */
 int setSerialAttributes(int fd, int myBaud)
 {
-	struct termios options;
-	int status;
-	tcgetattr(fd, &options);
+  struct termios options;
+  int status;
+  tcgetattr(fd, &options);
 
-	cfmakeraw(&options);
-	cfsetispeed(&options, myBaud);
-	cfsetospeed(&options, myBaud);
+  cfmakeraw(&options);
+  cfsetispeed(&options, myBaud);
+  cfsetospeed(&options, myBaud);
 
-	options.c_cflag |= (CLOCAL | CREAD);
-	options.c_cflag &= ~PARENB;
-	options.c_cflag &= ~CSTOPB;
-	options.c_cflag &= ~CSIZE;
-	options.c_cflag |= CS8;
-	options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
-	options.c_oflag &= ~OPOST;
+  options.c_cflag |= (CLOCAL | CREAD);
+  options.c_cflag &= ~PARENB;
+  options.c_cflag &= ~CSTOPB;
+  options.c_cflag &= ~CSIZE;
+  options.c_cflag |= CS8;
+  options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
+  options.c_oflag &= ~OPOST;
 
-	options.c_cc[VMIN] = 0;
-	options.c_cc[VTIME] = 100; // Ten seconds (100 deciseconds)
+  options.c_cc[VMIN] = 0;
+  options.c_cc[VTIME] = 100; // Ten seconds (100 deciseconds)
 
-	tcsetattr(fd, TCSANOW, &options);
+  tcsetattr(fd, TCSANOW, &options);
 
-	ioctl(fd, TIOCMGET, &status);
+  ioctl(fd, TIOCMGET, &status);
 
-	status |= TIOCM_DTR;
-	status |= TIOCM_RTS;
+  status |= TIOCM_DTR;
+  status |= TIOCM_RTS;
 
-	ioctl(fd, TIOCMSET, &status);
+  ioctl(fd, TIOCMSET, &status);
 
-	usleep(100 * 1000); // 10mS
+  usleep(100 * 1000); // 10mS
 
-	return 0;
+  return 0;
 }
 
 /* Sets the serial port to low latency mode */
 int setSerialLowLatency(int fd)
 {
-	struct serial_struct serial_settings;
+  struct serial_struct serial_settings;
 
-	if (ioctl(fd, TIOCGSERIAL, &serial_settings) < 0)
-	{
-		printf("Serial Error - Failed to read serial settings for low latency mode");
-		return 0;
-	}
+  if (ioctl(fd, TIOCGSERIAL, &serial_settings) < 0)
+  {
+    printf("Serial Error - Failed to read serial settings for low latency mode");
+    return 0;
+  }
 
-	serial_settings.flags |= ASYNC_LOW_LATENCY;
-	if (ioctl(fd, TIOCSSERIAL, &serial_settings) < 0)
-	{
-		printf("Serial Error - Failed to write serial settings for low latency mode");
-		return 0;
-	}
-	return 1;
+  serial_settings.flags |= ASYNC_LOW_LATENCY;
+  if (ioctl(fd, TIOCSSERIAL, &serial_settings) < 0)
+  {
+    printf("Serial Error - Failed to write serial settings for low latency mode");
+    return 0;
+  }
+  return 1;
 }
 
 int setSyncPin(int a)
 {
-	if (a == 0)
-	{
-		//printf("FLOATED SYNC PIN\n");
-	}
-	else
-	{
-		//printf("GROUNDED SYNC PIN\n");
-	}
-	return 0;
+  if (a == 0)
+  {
+    printf("FLOATED SYNC PIN\n");
+    if (GPIODirection(sync_pin, IN) == -1)
+    {
+      printf("Warning: Failed to float sync pin %d\n", sync_pin);
+    }
+  }
+  else
+  {
+    printf("GROUNDED SYNC PIN\n");
+    if (GPIODirection(sync_pin, OUT) == -1 || GPIOWrite(sync_pin, 0) == -1)
+    {
+      printf("Warning: Failed to sink sync pin %d\n", sync_pin);
+    }
+  }
+  return 0;
 }

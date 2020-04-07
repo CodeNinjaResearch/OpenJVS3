@@ -13,10 +13,12 @@
 #include <sys/ioctl.h>
 #include <linux/serial.h>
 
+#include "sync.h"
+
 int initDevice(char *devicePath);
 int closeDevice();
 int readBytes(char *buffer, int amount);
-int writeBytes(char* buffer, int amount);
+int writeBytes(char *buffer, int amount);
 int setSerialAttributes(int fd, int myBaud);
 int setSerialLowLatency(int fd);
 int setSyncPin(int a);
