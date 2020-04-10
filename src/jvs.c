@@ -1,18 +1,17 @@
-#include <circ_buffer.h>
+#include "buffer.h"
 #include "jvs.h"
 #include "constants.h"
 #include "definitions.h"
-#include "circ_buffer.h"
-#include "hw_hal.h"
+#include "sync.h"
 
 /* Use for timeout between received bytes */
-time_t time_last_reception;
-time_t time_current;
+time_t lastByteTime;
+time_t currentByteTime;
 
 int deviceID = -1;
 int debugEnabled = 0;
 
-circ_buffer_t read_buffer;
+Buffer read_buffer;
 
 JVSPacket packetIn;
 JVSPacket packetOut;
@@ -35,7 +34,7 @@ open_jvs_status_t initJVS(char *devicePath, JVSCapabilities *capabilitiesSetup)
 {
   open_jvs_status_t retval = OPEN_JVS_ERR_OK;
 
-  circ_buffer_init(&read_buffer);
+  initBuffer(&read_buffer);
 
   /* Init Sync Pin */
   SyncPinInit();
@@ -526,7 +525,7 @@ open_jvs_status_t jvs_do(void)
   /* Reset inter-byte timeout */
   if (OPEN_JVS_ERR_OK == retval)
   {
-    time(&time_last_reception);
+    time(&lastByteTime);
     timeout_enable = true;
   }
 
@@ -538,7 +537,7 @@ open_jvs_status_t jvs_do(void)
     if (debugEnabled)
     {
       debug("Received Message: \n");
-      print_circ_buffer(&read_buffer);
+      printBuffer(&read_buffer);
     }
   }
 
@@ -567,7 +566,7 @@ open_jvs_status_t jvs_do(void)
     /* Remove processed request from circ read-buffer */
     if ((OPEN_JVS_ERR_OK == retval) || (OPEN_JVS_ERR_CHECKSUM == retval))
     {
-      if (CIRC_BUFFER_ERR_OK != circ_buffer_discard(&read_buffer, request_len_raw))
+      if (BUFFER_SUCCESS != discardFromBuffer(&read_buffer, request_len_raw))
       {
         printf("%d\n", __LINE__);
         retval = OPEN_JVS_ERR_REC_BUFFER;
@@ -612,13 +611,13 @@ open_jvs_status_t jvs_do(void)
   }
 
   /* Check for inter-byte timeout */
-  time(&time_current);
+  time(&currentByteTime);
 
-  if ((((time_current - time_last_reception) > TIMEOUT_INTER_BYTE) && timeout_enable))
+  if ((((currentByteTime - lastByteTime) > TIMEOUT_INTER_BYTE) && timeout_enable))
   {
     deviceID = -1;
     /* Flush receive buffer and start over */
-    circ_buffer_init(&read_buffer);
+    initBuffer(&read_buffer);
 
     SyncPinLow(0);
     if (debugEnabled)
@@ -630,7 +629,7 @@ open_jvs_status_t jvs_do(void)
   return retval;
 }
 
-open_jvs_status_t find_start_of_message(circ_buffer_t *read_buffer)
+open_jvs_status_t find_start_of_message(Buffer *read_buffer)
 {
   uint32_t bytes_available;
 
@@ -638,7 +637,7 @@ open_jvs_status_t find_start_of_message(circ_buffer_t *read_buffer)
 
   if (OPEN_JVS_ERR_OK == retval)
   {
-    if (CIRC_BUFFER_ERR_OK != circ_buffer_filled(read_buffer, &bytes_available))
+    if (BUFFER_SUCCESS != bufferIsFilled(read_buffer, &bytes_available))
     {
       retval = OPEN_JVS_ERR_REC_BUFFER;
     }
@@ -653,7 +652,7 @@ open_jvs_status_t find_start_of_message(circ_buffer_t *read_buffer)
     /* Find start of message */
     for (i = 0; i < bytes_available; i++)
     {
-      if (CIRC_BUFFER_ERR_OK != circ_buffer_peek(read_buffer, i, &data))
+      if (BUFFER_SUCCESS != peekFromBuffer(read_buffer, i, &data))
       {
         retval = OPEN_JVS_ERR_REC_BUFFER;
       }
@@ -685,7 +684,7 @@ open_jvs_status_t find_start_of_message(circ_buffer_t *read_buffer)
       /* Discard bytes before Sync */
       if (0 != i)
       {
-        if (CIRC_BUFFER_ERR_OK != circ_buffer_discard(read_buffer, i))
+        if (BUFFER_SUCCESS != discardFromBuffer(read_buffer, i))
         {
           retval = OPEN_JVS_ERR_REC_BUFFER;
         }
@@ -704,7 +703,7 @@ open_jvs_status_t find_start_of_message(circ_buffer_t *read_buffer)
   return retval;
 }
 
-open_jvs_status_t decode_escape_circ(circ_buffer_t *read_buffer, JVSPacket *out_packet, uint32_t *out_raw_length)
+open_jvs_status_t decode_escape_circ(Buffer *read_buffer, JVSPacket *out_packet, uint32_t *out_raw_length)
 {
   open_jvs_status_t retval = OPEN_JVS_ERR_OK;
   uint32_t i, j = 0;
@@ -724,7 +723,7 @@ open_jvs_status_t decode_escape_circ(circ_buffer_t *read_buffer, JVSPacket *out_
 
   if (OPEN_JVS_ERR_OK == retval)
   {
-    if (CIRC_BUFFER_ERR_OK != circ_buffer_filled(read_buffer, &len_buffer_circ))
+    if (BUFFER_SUCCESS != bufferIsFilled(read_buffer, &len_buffer_circ))
     {
       retval = OPEN_JVS_ERR_REC_BUFFER;
     }
@@ -744,7 +743,7 @@ open_jvs_status_t decode_escape_circ(circ_buffer_t *read_buffer, JVSPacket *out_
 
     for (i = 0; i < len_buffer_circ; i++)
     {
-      if (CIRC_BUFFER_ERR_OK != circ_buffer_peek(read_buffer, i, &byte))
+      if (BUFFER_SUCCESS != peekFromBuffer(read_buffer, i, &byte))
       {
         retval = OPEN_JVS_ERR_REC_BUFFER;
         break;

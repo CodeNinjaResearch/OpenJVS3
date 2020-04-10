@@ -14,7 +14,7 @@
 #include <sys/ioctl.h>
 #include <linux/serial.h>
 
-#include "circ_buffer.h"
+#include "buffer.h"
 #include "definitions.h"
 
 /* Select timeout in ms*/
@@ -26,6 +26,6 @@ int setSerialAttributes(int fd, int myBaud);
 int setSerialLowLatency(int fd);
 
 open_jvs_status_t write_serial(/*int serial,*/ uint8_t *data, uint32_t data_len);
-open_jvs_status_t read_serial(/*int serial, */ circ_buffer_t *read_buffer);
+open_jvs_status_t read_serial(/*int serial, */ Buffer *read_buffer);
 
 #endif // DEVICE_H_

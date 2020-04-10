@@ -1,4 +1,4 @@
-#include "hw_hal.h"
+#include "sync.h"
 #include "jvs.h"
 #include "definitions.h"
 
