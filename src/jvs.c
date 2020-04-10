@@ -637,7 +637,7 @@ open_jvs_status_t find_start_of_message(Buffer *read_buffer)
 
   if (OPEN_JVS_ERR_OK == retval)
   {
-    if (BUFFER_SUCCESS != bufferIsFilled(read_buffer, &bytes_available))
+    if (BUFFER_SUCCESS != bufferFilled(read_buffer, &bytes_available))
     {
       retval = OPEN_JVS_ERR_REC_BUFFER;
     }
@@ -723,7 +723,7 @@ open_jvs_status_t decode_escape_circ(Buffer *read_buffer, JVSPacket *out_packet,
 
   if (OPEN_JVS_ERR_OK == retval)
   {
-    if (BUFFER_SUCCESS != bufferIsFilled(read_buffer, &len_buffer_circ))
+    if (BUFFER_SUCCESS != bufferFilled(read_buffer, &len_buffer_circ))
     {
       retval = OPEN_JVS_ERR_REC_BUFFER;
     }

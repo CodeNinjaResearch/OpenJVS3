@@ -34,6 +34,7 @@ typedef enum
 
 void initBuffer(Buffer *buffer);
 BufferStatus bufferAvailable(Buffer *buffer, uint32_t *bytes);
+BufferStatus bufferFilled(Buffer *buffer, uint32_t *bytes);
 BufferStatus pushToBuffer(Buffer *buffer, uint8_t data);
 BufferStatus popFromBuffer(Buffer *buffer, uint8_t *out_data);
 BufferStatus peekFromBuffer(Buffer *buffer, uint32_t offset, uint8_t *out_data);

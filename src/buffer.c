@@ -10,8 +10,6 @@
 
 #include "buffer.h"
 
-uint32_t bufferFilled(Buffer *buffer);
-
 void initBuffer(Buffer *buffer)
 {
 	buffer->readPosition = 0;
@@ -41,7 +39,8 @@ BufferStatus discardFromBuffer(Buffer *buffer, uint32_t length)
 	if (buffer == NULL)
 		return BUFFER_ERROR_NULL;
 
-	uint32_t bytesAvailable = bufferFilled(buffer);
+	uint32_t bytesAvailable = 0;
+	bufferFilled(buffer, &bytesAvailable);
 
 	if ((buffer->readPosition == buffer->writePosition) || (length > bytesAvailable))
 		return BUFFER_ERROR_OFFSET;
@@ -70,7 +69,8 @@ BufferStatus peekFromBuffer(Buffer *buffer, uint32_t offset, uint8_t *outData)
 	if (buffer == NULL)
 		return BUFFER_ERROR_NULL;
 
-	uint32_t bytesAvailable = bufferFilled(buffer);
+	uint32_t bytesAvailable = 0;
+	bufferFilled(buffer, &bytesAvailable);
 
 	if ((buffer->readPosition == buffer->writePosition) || (offset >= (bytesAvailable)))
 		return BUFFER_ERROR_OFFSET;
@@ -80,9 +80,14 @@ BufferStatus peekFromBuffer(Buffer *buffer, uint32_t offset, uint8_t *outData)
 	return BUFFER_SUCCESS;
 }
 
-uint32_t bufferFilled(Buffer *buffer)
+BufferStatus bufferFilled(Buffer *buffer, uint32_t *bytes)
 {
-	return (buffer->writePosition + CIRC_BUFFER_SIZE - buffer->readPosition) % CIRC_BUFFER_SIZE;
+	if (buffer == NULL || bytes == NULL)
+		return BUFFER_ERROR_NULL;
+
+	*bytes = (buffer->writePosition + CIRC_BUFFER_SIZE - buffer->readPosition) % CIRC_BUFFER_SIZE;
+
+	return BUFFER_SUCCESS;
 }
 
 BufferStatus bufferAvailable(Buffer *buffer, uint32_t *bytes)
@@ -99,7 +104,8 @@ void printBuffer(Buffer *buffer)
 {
 	uint8_t data;
 	BufferStatus bufferStatus;
-	uint32_t bytesAvailable = bufferFilled(buffer);
+	uint32_t bytesAvailable = 0;
+	bufferFilled(buffer, &bytesAvailable);
 	for (uint32_t i = 0; i < bytesAvailable; i++)
 	{
 		bufferStatus = peekFromBuffer(buffer, i, &data);
