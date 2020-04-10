@@ -81,7 +81,7 @@ open_jvs_status_t read_serial(/*int serial ,*/ Buffer *read_buffer)
   /* Space in circ buffer ?*/
   if (OPEN_JVS_ERR_OK == retval)
   {
-    if (BUFFER_SUCCESS != bytesAvailableFromBuffer(read_buffer, &circ_free))
+    if (BUFFER_SUCCESS != bufferAvailable(read_buffer, &circ_free))
     {
       retval = OPEN_JVS_ERR_REC_BUFFER;
     }
