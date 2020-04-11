@@ -5,13 +5,13 @@
 #include <string.h>
 
 /* Enable usage of SYNC pin circuit */
-//#define USE_SYNC_PIN
+#define USE_SYNC_PIN
 
 #define SYNC_PIN_HW_FLOAT 1
 #define SYNC_PIN_HW_SWITCH 2
 
 /* Select hardware implementation to use */
-#define SNYC_PIN_IMPLEMENTAION SYNC_PIN_HW_SWITCH
+#define SNYC_PIN_IMPLEMENTAION SYNC_PIN_HW_FLOAT
 
 /* Select timeout in ms*/
 #define TIMEOUT_SELECT 500
