@@ -18,9 +18,57 @@ void trimToken(char *str, int maxlen)
     }
 }
 
-int processConfig(char *filePath)
+JVSStatus processConfig(char *filePath, JVSConfig *config)
 {
-    printf("Processing config from: %s\n", filePath);
+    // Setup default values
+    strcpy(config->devicePath, "/dev/ttyUSB0");
+
+    FILE *fp;
+    char buffer[1024];
+    if ((fp = fopen(filePath, "r")) != NULL)
+    {
+        fgets(buffer, 1024, fp);
+        while (!feof(fp))
+        {
+            if (buffer[0] != '#' && buffer[0] != 0 && strcmp(buffer, "") != 0)
+            {
+                char *token = strtok(buffer, " ");
+                trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
+
+                /* Grab the Device Path */
+                if (strcmp(token, "DEVICE_PATH") == 0)
+                {
+                    token = strtok(NULL, " ");
+                    trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
+                    strcpy(config->devicePath, token);
+                }
+
+                /* Grab sync type */
+                if (strcmp(token, "SYNC_TYPE") == 0)
+                {
+                    token = strtok(NULL, " ");
+                    trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
+                    config->syncType = atoi(token);
+                }
+
+                /* Grab debug type */
+                if (strcmp(token, "DEBUG_MODE") == 0)
+                {
+                    token = strtok(NULL, " ");
+                    trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
+                    config->debugMode = atoi(token);
+                }
+            }
+            fgets(buffer, 1024, fp);
+        }
+    }
+    else
+    {
+        return OPEN_JVS_ERR_NULL;
+    }
+    fclose(fp);
+
+    return OPEN_JVS_ERR_OK;
 }
 
 void print_mapping_in(MappingIn *mappingIn)

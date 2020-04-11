@@ -76,19 +76,11 @@ static const JVSCapabilities jvs_io_naomi =
         .generalPurposeOutputs = 6,
 };
 
-open_jvs_status_t initIO(/* JVSCapabilities *capabilitiesSetup*/);
+JVSStatus initIO(/* JVSCapabilities *capabilitiesSetup*/);
 int setSwitch(int player, int switchNumber, int value);
 int incrementCoin();
 int setAnalogue(int channel, int value);
 int setRotary(int channel, int value);
 void controlPrintStatus();
-
-open_jvs_status_t jvs_get_analog_mask(uint16_t *analog_mask);
-open_jvs_status_t jvs_set_analog_mask(uint16_t mask);
-open_jvs_status_t jvs_get_analog_max(uint16_t *analog_max);
-open_jvs_status_t jvs_set_analog_max(uint16_t max);
-
-JVSCapabilities *getCapabilities();
-JVSState *getState();
 
 #endif // DEVICE_H_

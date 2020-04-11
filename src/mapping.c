@@ -36,7 +36,7 @@ MappingOut findMapping(Mode mode, Mapping *m)
       return m->outsideMappings[i];
     }
   }
-  printf("Error: No arcade map doesn't support %s\n", modeEnumToString(mode));
+  printf("Warning: This outside map doesn't support %s\n", modeEnumToString(mode));
   return m->outsideMappings[1];
 }
 
@@ -190,12 +190,7 @@ void *deviceThread(void *_args)
             max = temp;
           }
 
-          uint16_t analog_max;
-
-          // todo: check return code for all critical calls here
-          jvs_get_analog_max(&analog_max);
-
-          int scaled = (int)(((x - min) / (max - min)) * ((float)analog_max));
+          int scaled = (int)((x - min) / (max - min));
 
           if (m.analogueMapping[event.code].type == ANALOGUE)
           {

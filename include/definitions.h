@@ -43,7 +43,7 @@ typedef enum
     OPEN_JVS_NO_RESPONSE,
     OPEN_JVS_ERR_WAIT_BYTES,
 
-} open_jvs_status_t;
+} JVSStatus;
 
 typedef enum
 {

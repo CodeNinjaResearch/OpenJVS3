@@ -30,9 +30,9 @@ void print_msg(JVSPacket *msg)
   }
 }
 
-open_jvs_status_t initJVS(char *devicePath, JVSCapabilities *capabilitiesSetup)
+JVSStatus initJVS(char *devicePath, JVSCapabilities *capabilitiesSetup)
 {
-  open_jvs_status_t retval = OPEN_JVS_ERR_OK;
+  JVSStatus retval = OPEN_JVS_ERR_OK;
 
   initBuffer(&read_buffer);
 
@@ -117,9 +117,9 @@ void debug(char *string)
   }
 }
 
-open_jvs_status_t processPacket(JVSPacket *inPacket, JVSPacket *outPacket)
+JVSStatus processPacket(JVSPacket *inPacket, JVSPacket *outPacket)
 {
-  open_jvs_status_t retval = OPEN_JVS_NO_RESPONSE;
+  JVSStatus retval = OPEN_JVS_NO_RESPONSE;
   JVSState *state = getState();
   JVSCapabilities *capabilities = getCapabilities();
 
@@ -503,10 +503,10 @@ void test_buffer()
 
 #endif
 
-open_jvs_status_t jvs_do(void)
+JVSStatus jvs_do(void)
 {
   static bool timeout_enable = false;
-  open_jvs_status_t retval = OPEN_JVS_ERR_OK;
+  JVSStatus retval = OPEN_JVS_ERR_OK;
   uint32_t request_len_raw;
 
 #ifndef OFFLINE_MODE
@@ -629,11 +629,11 @@ open_jvs_status_t jvs_do(void)
   return retval;
 }
 
-open_jvs_status_t find_start_of_message(Buffer *read_buffer)
+JVSStatus find_start_of_message(Buffer *read_buffer)
 {
   uint32_t bytes_available;
 
-  open_jvs_status_t retval = OPEN_JVS_ERR_OK;
+  JVSStatus retval = OPEN_JVS_ERR_OK;
 
   if (OPEN_JVS_ERR_OK == retval)
   {
@@ -703,9 +703,9 @@ open_jvs_status_t find_start_of_message(Buffer *read_buffer)
   return retval;
 }
 
-open_jvs_status_t decode_escape_circ(Buffer *read_buffer, JVSPacket *out_packet, uint32_t *out_raw_length)
+JVSStatus decode_escape_circ(Buffer *read_buffer, JVSPacket *out_packet, uint32_t *out_raw_length)
 {
-  open_jvs_status_t retval = OPEN_JVS_ERR_OK;
+  JVSStatus retval = OPEN_JVS_ERR_OK;
   uint32_t i, j = 0;
   bool next_escaped = false;
   uint32_t len_buffer_circ;
@@ -779,9 +779,9 @@ open_jvs_status_t decode_escape_circ(Buffer *read_buffer, JVSPacket *out_packet,
   return retval;
 }
 
-open_jvs_status_t check_checksum(JVSPacket *packet)
+JVSStatus check_checksum(JVSPacket *packet)
 {
-  open_jvs_status_t retval = OPEN_JVS_ERR_OK;
+  JVSStatus retval = OPEN_JVS_ERR_OK;
 
   if (NULL == packet)
   {
@@ -801,9 +801,9 @@ open_jvs_status_t check_checksum(JVSPacket *packet)
   return retval;
 }
 
-open_jvs_status_t check_message(JVSPacket *packet)
+JVSStatus check_message(JVSPacket *packet)
 {
-  open_jvs_status_t retval = OPEN_JVS_ERR_OK;
+  JVSStatus retval = OPEN_JVS_ERR_OK;
 
   if (NULL == packet)
   {
@@ -841,9 +841,9 @@ uint8_t calc_checksum(uint8_t *message, uint8_t len)
   return checksum_calc;
 }
 
-open_jvs_status_t encode_escape(JVSPacket *packet)
+JVSStatus encode_escape(JVSPacket *packet)
 {
-  open_jvs_status_t retval = OPEN_JVS_ERR_OK;
+  JVSStatus retval = OPEN_JVS_ERR_OK;
 
   uint8_t temp[MAX_PACKET_SIZE];
   uint32_t len_new = 0;

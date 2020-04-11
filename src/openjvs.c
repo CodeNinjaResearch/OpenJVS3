@@ -16,7 +16,7 @@ JVSCapabilities *getCapabilities()
 
 int main(int argc, char **argv)
 {
-  open_jvs_status_t retval = OPEN_JVS_ERR_OK;
+  JVSStatus retval = OPEN_JVS_ERR_OK;
 
   signal(SIGINT, handleSignal);
 
