@@ -1,5 +1,5 @@
-#ifndef HW_HAL_H_
-#define HW_HAL_H_
+#ifndef SYNC_H_
+#define SYNC_H_
 
 #include <stdbool.h>
 #include <sys/stat.h>
@@ -30,4 +30,4 @@ int GPIOWrite(int pin, int value);
 void set_debug_pin(uint8_t b);
 void init_debug_pin(void);
 
-#endif // HW_HAL_H_
+#endif // SYNC_H_

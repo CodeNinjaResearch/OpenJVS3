@@ -2,13 +2,13 @@
     "files.associations": {
         "cstddef": "cpp",
         "io.h": "c",
-        "circ_buffer.h": "c",
+        "buffer.h": "c",
         "definitions.h": "c",
         "device.h": "c",
         "stdbool.h": "c",
         "cstdbool": "c",
         "jvs.h": "c",
-        "hw_hal.h": "c"
+        "sync.h": "c"
     },
     "editor.formatOnPaste": true,
     "editor.formatOnSave": true,

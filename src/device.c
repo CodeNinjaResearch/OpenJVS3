@@ -1,4 +1,4 @@
-#include <circ_buffer.h>
+#include "buffer.h"
 #include "device.h"
 #include "definitions.h"
 
@@ -42,7 +42,7 @@ open_jvs_status_t write_serial(/*int serial,*/ uint8_t *data, uint32_t data_len)
   return retval;
 }
 
-open_jvs_status_t read_serial(/*int serial ,*/ circ_buffer_t *read_buffer)
+open_jvs_status_t read_serial(/*int serial ,*/ Buffer *read_buffer)
 {
   open_jvs_status_t retval = OPEN_JVS_ERR_OK;
 
@@ -81,7 +81,7 @@ open_jvs_status_t read_serial(/*int serial ,*/ circ_buffer_t *read_buffer)
   /* Space in circ buffer ?*/
   if (OPEN_JVS_ERR_OK == retval)
   {
-    if (CIRC_BUFFER_ERR_OK != circ_buffer_available(read_buffer, &circ_free))
+    if (BUFFER_SUCCESS != bufferAvailable(read_buffer, &circ_free))
     {
       retval = OPEN_JVS_ERR_REC_BUFFER;
     }
@@ -108,7 +108,7 @@ open_jvs_status_t read_serial(/*int serial ,*/ circ_buffer_t *read_buffer)
       /* Copy data to circ buffer */
       for (uint32_t i = 0; i < n; i++)
       {
-        if (CIRC_BUFFER_ERR_OK != circ_buffer_push(read_buffer, receive_buffer[i]))
+        if (BUFFER_SUCCESS != pushToBuffer(read_buffer, receive_buffer[i]))
         {
           retval = OPEN_JVS_ERR_REC_BUFFER;
           break;

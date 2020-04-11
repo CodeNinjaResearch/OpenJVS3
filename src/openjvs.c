@@ -1,11 +1,11 @@
-#include <circ_buffer.h>
 #include "openjvs.h"
+#include "buffer.h"
 #include "stdio.h"
 #include <unistd.h>
 
 int running = 1;
 
-circ_buffer_t read_buffer;
+Buffer read_buffer;
 /* Setup the IO we are trying to emulate */
 JVSCapabilities capabilities;
 
