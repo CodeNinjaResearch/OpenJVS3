@@ -6,6 +6,12 @@
 # Most of these settings should be left alone, only modify them if the system doesn't work.
 # --
 
+# The default game mapping
+DEFAULT_MAPPING driving_generic
+
+# The default IO to emulate
+DEFAULT_IO open_jvs
+
 # The path of the RS485 Converter
 DEVICE_PATH /dev/ttyUSB0
 
