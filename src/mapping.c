@@ -86,6 +86,9 @@ void stopThreads()
 
 void *deviceThread(void *_args)
 {
+  /* Device threads run with standard linux prio */
+  set_realtime_priority(false);
+
   struct MappingThreadArguments *args = (struct MappingThreadArguments *)_args;
   char eventPath[4096];
   char mappingPathIn[4096];
@@ -214,8 +217,7 @@ void *deviceThread(void *_args)
           {
             if (m.keyMapping[event.code].type == BUTTON)
             {
-              setSwitch(1, m.keyMapping[event.code].channel, event.value);
-              setSwitch(2, m.keyMapping[event.code].channel, event.value);
+              setSwitch(m.keyMapping[event.code].player, m.keyMapping[event.code].channel, event.value);
             }
             else if (m.keyMapping[event.code].type == SYSTEM)
             {

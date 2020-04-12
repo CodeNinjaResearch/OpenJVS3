@@ -48,10 +48,7 @@ open_jvs_status_t initIO(void)
     }
 
     /* Set max value that is supported for the set number of bits set for the analog channel */
-
     uint16_t max = 0;
-    printf("jvs_analog_number_bits:%d\n", capabilities->analogueInBits);
-
     for (int16_t i = 0; i < capabilities->analogueInBits; i++)
     {
       max |= (1 << i);
@@ -61,8 +58,6 @@ open_jvs_status_t initIO(void)
     {
       retval = jvs_set_analog_max(max);
     }
-
-    printf("jvs_analog_max:%04X \n", capabilities->analogueMax);
   }
 
   div_t switchDiv = div(capabilities->switches, 8);

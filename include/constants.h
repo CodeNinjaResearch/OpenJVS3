@@ -62,7 +62,6 @@
 #define CMD_DELAY 0.01 // delay between commands
 #endif                 // CONSTANTS_H_
 
-
 /* Message Layout:
  * |Sync (1byte) | Node Number (1byte) | Number Bytes Payload (1byte) | Cmd (1byte) | ...(Payload-1) | Checksum (1byte)| */
 #define CMD_IDX_SNY 0
@@ -81,7 +80,7 @@
 #define CMD_STATUS 1
 #define CMD_LEN_NODE 1
 
-#define GET_MSG_REQ_LEN(packet) (packet[CMD_IDX_NUMBER_BYTES_PAYLOAD] + CMD_LEN_HEADER)
+#define GET_MSG_REQ_LEN(packet) (packet[CMD_IDX_NUMBER_BYTES_PAYLOAD] + (uint32_t)CMD_LEN_HEADER)
 
 /* Timeout in sec after the receive buffer will be flushed and Sync-line set to not addressed */
-#define TIMEOUT_INTER_BYTE 10
+#define TIMEOUT_INTER_BYTE 20
