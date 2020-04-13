@@ -38,6 +38,9 @@ int main(int argc, char **argv)
     return 1;
   }
 
+  /* Try to increase prio of JVS communication thread */
+  set_realtime_priority(true);
+
   /* Process packets forever */
   while (running)
   {
@@ -45,9 +48,9 @@ int main(int argc, char **argv)
 
 #ifdef OFFLINE_MODE
     // Give time for debug prints of task started later
-    sleep(30);
+    sleep(1);
     retval = OPEN_JVS_ERR_OFFLINE;
-    return 0;
+    //return 0;
 #endif
 
     switch (retval)

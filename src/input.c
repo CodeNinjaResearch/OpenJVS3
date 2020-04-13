@@ -35,7 +35,10 @@ void connectDevices()
         strcat(temp, devices[i].name);
         if (access(temp, F_OK) != -1)
         {
-            printf("Supported Device Found: %s\n", devices[i].name);
+            printf("Supported Device Found: %s\n", temp);
+            // DEBUG only
+            //startThread(devices[i].path, temp, "docs/maps/arcade/driving-race_tv");
+            //startThread(devices[i].path, temp, "docs/maps/arcade/driving-hummer");
             startThread(devices[i].path, temp, "docs/maps/arcade/driving-generic");
         }
     }

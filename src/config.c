@@ -89,12 +89,14 @@ int processInMapFile(char *filePath, MappingIn *mappingIn)
     int count = 0;
     FILE *fp;
     char buffer[1024];
+    char *str_ptr = NULL;
+
     if ((fp = fopen(filePath, "r")) != NULL)
     {
-        fgets(buffer, 1024, fp);
-        while (!feof(fp))
+        do
         {
-            if ((buffer[0] != '#') && (buffer[0] != 0) && (buffer[0] != '\r') && (buffer[0] != '\n') && (strcmp(buffer, "") != 0))
+            str_ptr = fgets(buffer, 1024, fp);
+            if ((str_ptr != NULL) && (buffer[0] != '#') && (buffer[0] != 0) && (buffer[0] != '\r') && (buffer[0] != '\n') && (strcmp(buffer, "") != 0))
             {
                 char *token = strtok(buffer, " ");
                 trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
@@ -129,7 +131,7 @@ int processInMapFile(char *filePath, MappingIn *mappingIn)
 
                     Mode mode = modeStringToEnum(token);
 
-                    // todo: min/max should be defined either by user, the JVS-IO capabilites or the input device..
+                    // Bobby: is setting min/max here still necessary? These values are set later in deviceThread() according to the InputDevice?
                     int min = 0;
                     int max = 0;
                     if (type == ABS)
@@ -154,8 +156,7 @@ int processInMapFile(char *filePath, MappingIn *mappingIn)
                     printf("config.c: processInMapFile: incorrect settings keyword (%s).\n", token);
                 }
             }
-            fgets(buffer, 1024, fp);
-        }
+        } while (!feof(fp));
     }
     return count;
 }
@@ -165,12 +166,13 @@ int processOutMapFile(char *filePath, MappingOut *mappingIn)
     int count = 0;
     FILE *fp;
     char buffer[1024];
+    char *str_ptr = NULL;
     if ((fp = fopen(filePath, "r")) != NULL)
     {
-        fgets(buffer, 1024, fp);
-        while (!feof(fp))
+        do
         {
-            if ((buffer[0] != '#') && (buffer[0] != 0) && (buffer[0] != '\r') && (buffer[0] != '\n') && (strcmp(buffer, "") != 0))
+            str_ptr = fgets(buffer, 1024, fp);
+            if ((str_ptr != NULL) && (buffer[0] != '#') && (buffer[0] != 0) && (buffer[0] != '\r') && (buffer[0] != '\n') && (strcmp(buffer, "") != 0))
             {
                 char *token = strtok(buffer, " ");
                 InType type = KEY;
@@ -192,11 +194,22 @@ int processOutMapFile(char *filePath, MappingOut *mappingIn)
 
                     token = strtok(NULL, " ");
                     trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
+                    Mode mode = modeStringToEnum(token);
+
+                    /* Optional: Player Number*/
+                    int player_number = 1;
+                    token = strtok(NULL, " ");
+
+                    if (token != NULL)
+                    {
+                        player_number = atoi(token);
+                    }
 
                     MappingOut tempMapping = {
                         .channel = channel,
                         .type = type,
-                        .mode = modeStringToEnum(token)};
+                        .mode = mode,
+                        .player = player_number};
 
                     mappingIn[count] = tempMapping;
                     count++;
@@ -206,8 +219,7 @@ int processOutMapFile(char *filePath, MappingOut *mappingIn)
                     printf("config.c: processOutMapFile: incorrect settings keyword:%x \n", buffer[0]);
                 }
             }
-            fgets(buffer, 1024, fp);
-        }
+        } while (!feof(fp));
     }
     return count;
 }
