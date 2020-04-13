@@ -206,7 +206,7 @@ JVSStatus processPacket(JVSPacket *inPacket, JVSPacket *outPacket)
           outPacket->data[outPacket->length] = REPORT_SUCCESS;
           outPacket->length += 1;
 
-          outPacket->data[outPacket->length] = capabilities->jvs_command_version;
+          outPacket->data[outPacket->length] = capabilities->jvsCommandVersion;
           outPacket->length += 1;
 
           sizeCurrentCmd = CMD_LEN_CMD + 0;

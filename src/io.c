@@ -33,6 +33,7 @@ JVSStatus initIO(void)
   // Set the maximum analogue values
   if (capabilities->analogueInBits > 16)
     return OPEN_JVS_ERR_ANALOG_BITS;
+  capabilities->analogueMax = pow(2, capabilities->analogueInBits) - 1;
 
   div_t switchDiv = div(capabilities->switches, 8);
   int switchBytes = switchDiv.quot + (switchDiv.rem ? 1 : 0);
