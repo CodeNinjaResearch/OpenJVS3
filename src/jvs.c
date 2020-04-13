@@ -3,6 +3,7 @@
 #include "constants.h"
 #include "definitions.h"
 #include "sync.h"
+#include "openjvs.h"
 
 /* Use for timeout between received bytes */
 time_t lastByteTime;
@@ -38,10 +39,10 @@ JVSStatus initJVS(char *devicePath, JVSCapabilities *capabilitiesSetup)
 
   /* Set Sync algorithm from settings */
 
-  SyncAlgorithmSet(SYNC_CIRCUIT_FLOAT);
+  SyncAlgorithmSet(SENSE_FLOAT);
 
   // DEBUG
-  //SyncAlgorithmSet(SYNC_CIRCUIT_SWITCH);
+  //SyncAlgorithmSet(SENSE_SWITCH);
 
   /* Init Sync Pin */
   SyncPinInit();
@@ -323,7 +324,6 @@ JVSStatus processPacket(JVSPacket *inPacket, JVSPacket *outPacket)
             outPacket->data[outPacket->length + 0] = analog_data >> 8;
             outPacket->data[outPacket->length + 1] = analog_data >> 0;
 
- 
             outPacket->length += 2;
           }
           sizeCurrentCmd = CMD_LEN_CMD + 1;
@@ -349,7 +349,6 @@ JVSStatus processPacket(JVSPacket *inPacket, JVSPacket *outPacket)
             outPacket->data[outPacket->length + 0] = analog_data >> 8;
             outPacket->data[outPacket->length + 1] = analog_data >> 0;
 
- 
             outPacket->length += 2;
           }
           sizeCurrentCmd = CMD_LEN_CMD + 1;

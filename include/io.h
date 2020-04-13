@@ -82,5 +82,6 @@ int incrementCoin();
 int setAnalogue(int channel, int value);
 int setRotary(int channel, int value);
 void controlPrintStatus();
+JVSState *getState();
 
 #endif // DEVICE_H_

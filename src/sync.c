@@ -2,24 +2,24 @@
 #include "jvs.h"
 #include "definitions.h"
 
-static SYNC_CIRCUIT sync_circuit_use = SYNC_CIRCUIT_FLOAT;
+static JVSSenseCircuit circuitToUse = SENSE_FLOAT;
 
-open_jvs_status_t SyncAlgorithmSet(SYNC_CIRCUIT circ_type)
+JVSStatus SyncAlgorithmSet(JVSSenseCircuit circuitType)
 {
-	open_jvs_status_t retval = OPEN_JVS_ERR_OK;
+	JVSStatus retval = OPEN_JVS_ERR_OK;
 
-	switch (circ_type)
+	switch (circuitType)
 	{
-	case SYNC_CIRCUIT_FLOAT:
-	case SYNC_CIRCUIT_SWITCH:
+	case SENSE_FLOAT:
+	case SENSE_SWITCH:
 	{
-		sync_circuit_use = circ_type;
+		circuitToUse = circuitType;
 	}
 	break;
 
 	default:
 	{
-		printf("**** Invalid Sync algorithm net: %u ****\n", circ_type);
+		printf("**** Invalid Sync algorithm net: %u ****\n", circuitType);
 		retval = OPEN_JVS_ERR_INVALID_SYNC_CIRCUIT;
 	}
 	break;
@@ -32,10 +32,10 @@ int SyncPinInit(void)
 	int retval = 0;
 
 	/* Make Pin available */
-	switch (sync_circuit_use)
+	switch (circuitToUse)
 	{
-	case SYNC_CIRCUIT_SWITCH:
-	case SYNC_CIRCUIT_FLOAT:
+	case SENSE_SWITCH:
+	case SENSE_FLOAT:
 		/* GPIO SYNC PINS */
 		retval = GPIOExport(sync_pin);
 		if (retval != 0)
@@ -51,9 +51,9 @@ int SyncPinInit(void)
 	/* Config Pin*/
 	if (retval == 0)
 	{
-		switch (sync_circuit_use)
+		switch (circuitToUse)
 		{
-		case SYNC_CIRCUIT_SWITCH:
+		case SENSE_SWITCH:
 		{
 			retval = GPIODirection(sync_pin, OUT);
 			if (retval != 0)
@@ -63,8 +63,8 @@ int SyncPinInit(void)
 		}
 		break;
 
-		case SYNC_NONE:
-		case SYNC_CIRCUIT_FLOAT:
+		case SENSE_NONE:
+		case SENSE_FLOAT:
 			break;
 		}
 	}
@@ -79,9 +79,9 @@ int SyncPinLow(bool pull_low)
 
 	if (pull_low)
 	{
-		switch (sync_circuit_use)
+		switch (circuitToUse)
 		{
-		case SYNC_CIRCUIT_SWITCH:
+		case SENSE_SWITCH:
 		{
 			error = GPIOWrite(sync_pin, 1);
 
@@ -92,7 +92,7 @@ int SyncPinLow(bool pull_low)
 		}
 		break;
 
-		case SYNC_CIRCUIT_FLOAT:
+		case SENSE_FLOAT:
 		{
 			error = GPIODirection(sync_pin, OUT);
 
@@ -108,12 +108,12 @@ int SyncPinLow(bool pull_low)
 		}
 		break;
 
-		case SYNC_NONE:
+		case SENSE_NONE:
 			break;
 
 		default:
 		{
-			printf("Invalid Sync algorithm net: %u \n", sync_circuit_use);
+			printf("Invalid Sync algorithm net: %u \n", circuitToUse);
 		}
 		break;
 		}
@@ -122,9 +122,9 @@ int SyncPinLow(bool pull_low)
 	}
 	else
 	{
-		switch (sync_circuit_use)
+		switch (circuitToUse)
 		{
-		case SYNC_CIRCUIT_SWITCH:
+		case SENSE_SWITCH:
 		{
 			error = GPIOWrite(sync_pin, 0);
 
@@ -135,7 +135,7 @@ int SyncPinLow(bool pull_low)
 		}
 		break;
 
-		case SYNC_CIRCUIT_FLOAT:
+		case SENSE_FLOAT:
 		{
 			error = GPIODirection(sync_pin, IN);
 
@@ -146,12 +146,12 @@ int SyncPinLow(bool pull_low)
 		}
 		break;
 
-		case SYNC_NONE:
+		case SENSE_NONE:
 			break;
 
 		default:
 		{
-			printf("Invalid Sync algorithm net: %u \n", sync_circuit_use);
+			printf("Invalid Sync algorithm net: %u \n", circuitToUse);
 		}
 		break;
 		}

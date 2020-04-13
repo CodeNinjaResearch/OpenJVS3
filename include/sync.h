@@ -21,16 +21,14 @@
 
 typedef enum
 {
-    SYNC_CIRCUIT_FLOAT,
-    SYNC_CIRCUIT_SWITCH,
-    SYNC_NONE,
-
-    /* data */
-} SYNC_CIRCUIT;
+    SENSE_FLOAT,
+    SENSE_SWITCH,
+    SENSE_NONE,
+} JVSSenseCircuit;
 
 int SyncPinInit(void);
 int SyncPinLow(bool pull_low);
-open_jvs_status_t SyncAlgorithmSet(SYNC_CIRCUIT circ_type);
+JVSStatus SyncAlgorithmSet(JVSSenseCircuit circuitType);
 
 int GPIOUnexport(int pin);
 int GPIOExport(int pin);
