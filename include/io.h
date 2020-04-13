@@ -38,7 +38,7 @@ typedef struct
     uint8_t backup;
     char *name;
 
-    uint8_t jvs_command_version;
+    uint8_t jvsCommandVersion;
     uint8_t jvs_version;
     uint8_t jvs_com_version;
 
