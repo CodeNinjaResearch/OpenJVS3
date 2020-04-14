@@ -98,25 +98,25 @@ int incrementCoin()
   return 1;
 }
 
-int setAnalogue(int channel, int value)
+int setAnalogue(int channel, double value)
 {
   JVSCapabilities *capabilities = getCapabilities();
 
   if (channel < capabilities->analogueInChannels)
   {
-    state.analogueChannel[channel] = value * capabilities->analogueMax;
+    state.analogueChannel[channel] = (int)((double)value * (double)capabilities->analogueMax);
     return 1;
   }
   return 0;
 }
 
-int setRotary(int channel, int value)
+int setRotary(int channel, double value)
 {
   JVSCapabilities *capabilities = getCapabilities();
 
   if (channel < capabilities->rotaryChannels)
   {
-    state.rotaryChannel[channel] = value;
+    state.rotaryChannel[channel] = value * 255;
     return 1;
   }
 

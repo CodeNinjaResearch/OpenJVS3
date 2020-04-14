@@ -79,8 +79,8 @@ static const JVSCapabilities jvs_io_naomi =
 JVSStatus initIO(/* JVSCapabilities *capabilitiesSetup*/);
 int setSwitch(int player, int switchNumber, int value);
 int incrementCoin();
-int setAnalogue(int channel, int value);
-int setRotary(int channel, int value);
+int setAnalogue(int channel, double value);
+int setRotary(int channel, double value);
 void controlPrintStatus();
 JVSState *getState();
 

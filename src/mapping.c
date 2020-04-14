@@ -194,7 +194,7 @@ void *deviceThread(void *_args)
           }
 
           // Scale to between 0 and 1 maybe? How does this actually work?
-          int scaled = (int)((x - min) / (max - min));
+          double scaled = (x - min) / (max - min);
 
           if (m.analogueMapping[event.code].type == ANALOGUE)
           {
