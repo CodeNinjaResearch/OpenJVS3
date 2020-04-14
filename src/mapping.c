@@ -36,7 +36,7 @@ MappingOut findMapping(Mode mode, Mapping *m)
       return m->outsideMappings[i];
     }
   }
-  printf("Error: No arcade map doesn't support %s\n", modeEnumToString(mode));
+  printf("Warning: This outside map doesn't support %s\n", modeEnumToString(mode));
   return m->outsideMappings[1];
 }
 
@@ -86,6 +86,9 @@ void stopThreads()
 
 void *deviceThread(void *_args)
 {
+  /* Device threads run with standard linux prio */
+  set_realtime_priority(false);
+
   struct MappingThreadArguments *args = (struct MappingThreadArguments *)_args;
   char eventPath[4096];
   char mappingPathIn[4096];
@@ -190,12 +193,8 @@ void *deviceThread(void *_args)
             max = temp;
           }
 
-          uint16_t analog_max;
-
-          // todo: check return code for all critical calls here
-          jvs_get_analog_max(&analog_max);
-
-          int scaled = (int)(((x - min) / (max - min)) * ((float)analog_max));
+          // Scale to between 0 and 1 maybe? How does this actually work?
+          int scaled = (int)((x - min) / (max - min));
 
           if (m.analogueMapping[event.code].type == ANALOGUE)
           {
@@ -214,8 +213,7 @@ void *deviceThread(void *_args)
           {
             if (m.keyMapping[event.code].type == BUTTON)
             {
-              setSwitch(1, m.keyMapping[event.code].channel, event.value);
-              setSwitch(2, m.keyMapping[event.code].channel, event.value);
+              setSwitch(m.keyMapping[event.code].player, m.keyMapping[event.code].channel, event.value);
             }
             else if (m.keyMapping[event.code].type == SYSTEM)
             {

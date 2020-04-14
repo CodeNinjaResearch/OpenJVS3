@@ -10,5 +10,6 @@
 
 int main(int argc, char **argv);
 void handleSignal(int sig);
+JVSCapabilities *getCapabilities();
 
 #endif // OPENJVS_H_

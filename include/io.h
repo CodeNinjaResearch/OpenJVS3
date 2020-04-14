@@ -38,7 +38,7 @@ typedef struct
     uint8_t backup;
     char *name;
 
-    uint8_t jvs_command_version;
+    uint8_t jvsCommandVersion;
     uint8_t jvs_version;
     uint8_t jvs_com_version;
 
@@ -51,7 +51,7 @@ static const JVSCapabilities jvs_io_lindbergh =
         .name = "SEGA CORPORATION;I/O BD JVS;837-14572;Ver1.00;2005/10",
         .players = 2,
         .switches = 0xE,
-        .jvs_command_version = 0x13,
+        .jvsCommandVersion = 0x13,
         .jvs_version = 0x20,
         .jvs_com_version = 0x10,
         .analogueInChannels = 8,
@@ -66,7 +66,7 @@ static const JVSCapabilities jvs_io_naomi =
         .name = "OpenJVS Emulator;I/O BD JVS;837-13551;Ver1.00;98/10",
         .players = 2,
         .switches = 16, // @Bobby: Why 16?
-        .jvs_command_version = 0x10,
+        .jvsCommandVersion = 0x10,
         .jvs_version = 0x11,
         .jvs_com_version = 0x10,
         .analogueInChannels = 8,
@@ -76,19 +76,12 @@ static const JVSCapabilities jvs_io_naomi =
         .generalPurposeOutputs = 6,
 };
 
-open_jvs_status_t initIO(/* JVSCapabilities *capabilitiesSetup*/);
+JVSStatus initIO(/* JVSCapabilities *capabilitiesSetup*/);
 int setSwitch(int player, int switchNumber, int value);
 int incrementCoin();
 int setAnalogue(int channel, int value);
 int setRotary(int channel, int value);
 void controlPrintStatus();
-
-open_jvs_status_t jvs_get_analog_mask(uint16_t *analog_mask);
-open_jvs_status_t jvs_set_analog_mask(uint16_t mask);
-open_jvs_status_t jvs_get_analog_max(uint16_t *analog_max);
-open_jvs_status_t jvs_set_analog_max(uint16_t max);
-
-JVSCapabilities *getCapabilities();
 JVSState *getState();
 
 #endif // DEVICE_H_

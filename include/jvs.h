@@ -29,20 +29,20 @@ typedef struct
     uint8_t data[MAX_PACKET_SIZE];
 } JVSPacket;
 
-open_jvs_status_t initJVS(char *devicePath, JVSCapabilities *capabilitiesSetup);
+JVSStatus initJVS(char *devicePath, JVSCapabilities *capabilitiesSetup);
 int disconnectJVS();
 int writeCapabilities(JVSPacket *outputPacket, JVSCapabilities *capabilities);
 int readPacket(JVSPacket *packet);
 int writePacket(JVSPacket *packet);
-open_jvs_status_t processPacket2(JVSPacket *inPacket, JVSPacket *outPacket);
+JVSStatus processPacket2(JVSPacket *inPacket, JVSPacket *outPacket);
 void debug(char *string);
 
-open_jvs_status_t jvs_do(void);
+JVSStatus jvs_do(void);
 
-open_jvs_status_t find_start_of_message(Buffer *read_buffer);
-open_jvs_status_t decode_escape_circ(Buffer *read_buffer, JVSPacket *out_packet_decoded, uint32_t *out_raw_length);
-open_jvs_status_t check_message(JVSPacket *packet);
+JVSStatus find_start_of_message(Buffer *read_buffer);
+JVSStatus decode_escape_circ(Buffer *read_buffer, JVSPacket *out_packet_decoded, uint32_t *out_raw_length);
+JVSStatus check_message(JVSPacket *packet);
 uint8_t calc_checksum(uint8_t *message, uint8_t len);
-open_jvs_status_t encode_escape(JVSPacket *packet);
+JVSStatus encode_escape(JVSPacket *packet);
 
 #endif // JVS_H_

@@ -25,9 +25,9 @@ int initDevice(char *devicePath)
   return 1;
 }
 
-open_jvs_status_t write_serial(/*int serial,*/ uint8_t *data, uint32_t data_len)
+JVSStatus write_serial(/*int serial,*/ uint8_t *data, uint32_t data_len)
 {
-  open_jvs_status_t retval = OPEN_JVS_ERR_OK;
+  JVSStatus retval = OPEN_JVS_ERR_OK;
 
   int n = write(serialIO, data, data_len);
 
@@ -42,9 +42,9 @@ open_jvs_status_t write_serial(/*int serial,*/ uint8_t *data, uint32_t data_len)
   return retval;
 }
 
-open_jvs_status_t read_serial(/*int serial ,*/ Buffer *read_buffer)
+JVSStatus read_serial(/*int serial ,*/ Buffer *read_buffer)
 {
-  open_jvs_status_t retval = OPEN_JVS_ERR_OK;
+  JVSStatus retval = OPEN_JVS_ERR_OK;
 
   fd_set fd_serial;
   uint32_t circ_free;

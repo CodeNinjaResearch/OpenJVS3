@@ -3,15 +3,8 @@
 
 #include <stdio.h>
 #include <string.h>
-
-/* Enable usage of SYNC pin circuit */
-#define USE_SYNC_PIN
-
-#define SYNC_PIN_HW_FLOAT 1
-#define SYNC_PIN_HW_SWITCH 2
-
-/* Select hardware implementation to use */
-#define SNYC_PIN_IMPLEMENTAION SYNC_PIN_HW_FLOAT
+#include <stdbool.h>
+#include <pthread.h>
 
 /* Select timeout in ms*/
 #define TIMEOUT_SELECT 500
@@ -36,6 +29,7 @@ typedef enum
     OPEN_JVS_ERR_JVS_PROFILE_NULL,
     OPEN_JVS_ERR_ANALOG_BITS,
     OPEN_JVS_ERR_PACKET_BUFFER_OVERFLOW,
+    OPEN_JVS_ERR_INVALID_SYNC_CIRCUIT,
 
     /* Errors/Status that are fine */
     OPEN_JVS_ERR_TIMEOUT,
@@ -43,7 +37,7 @@ typedef enum
     OPEN_JVS_NO_RESPONSE,
     OPEN_JVS_ERR_WAIT_BYTES,
 
-} open_jvs_status_t;
+} JVSStatus;
 
 typedef enum
 {
@@ -87,7 +81,7 @@ typedef enum
     COIN
 } Mode;
 
-const static struct
+static const struct
 {
     Mode val;
     const char *str;
@@ -162,6 +156,7 @@ typedef struct
     int channel;
     OutType type;
     Mode mode;
+    int player;
     int min;
     int max;
     int reverse;
@@ -169,5 +164,6 @@ typedef struct
 
 Mode modeStringToEnum(const char *str);
 const char *modeEnumToString(Mode mode);
+int set_realtime_priority(bool realtime);
 
 #endif // DEFINITIONS_H_

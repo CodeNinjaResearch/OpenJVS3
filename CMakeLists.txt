@@ -19,13 +19,12 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 # target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)
 target_compile_options(${PROJECT_NAME} PRIVATE)
 
-target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT} m)
 
 install(TARGETS ${PROJECT_NAME}
 	COMPONENT {$PROJECT_NAME}
-    RUNTIME DESTINATION "bin/"
-    LIBRARY DESTINATION "lib/"
-    DESTINATION "/usr/"
+	RUNTIME DESTINATION "bin/"
+	LIBRARY DESTINATION "lib/"
 )
 
 SET(CPACK_GENERATOR "DEB")

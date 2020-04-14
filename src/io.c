@@ -1,69 +1,39 @@
 #include <string.h>
+#include <math.h>
+
 #include "definitions.h"
 #include "io.h"
 
 JVSState state;
 
-open_jvs_status_t initIO(void)
+JVSCapabilities *getCapabilities();
+JVSState *getState();
+
+JVSStatus initIO(void)
 {
-  open_jvs_status_t retval = OPEN_JVS_ERR_OK;
+  JVSCapabilities *capabilities = getCapabilities();
 
-  JVSCapabilities *capabilities;
+  if (capabilities == NULL)
+    return OPEN_JVS_ERR_NULL;
 
-  capabilities = getCapabilities();
-
-  if (NULL == capabilities)
+  // Copy the correct IO capabilities over
+  memset(capabilities, 0, sizeof(JVSCapabilities));
+  uint8_t ioChoice = 1;
+  switch (ioChoice)
   {
-    retval = OPEN_JVS_ERR_NULL;
-  }
-
-  if (OPEN_JVS_ERR_OK == retval)
-  {
-    memset(capabilities, 0, sizeof(JVSCapabilities));
-
-    // todo: use config to select template for JVS-IO ?
-    uint8_t idx = 1;
-    switch (idx)
-    {
-    default:
-    case 0:
-    {
-      memcpy(capabilities, &jvs_io_lindbergh, sizeof(JVSCapabilities));
-    }
+  case 0:
+    memcpy(capabilities, &jvs_io_lindbergh, sizeof(JVSCapabilities));
     break;
 
-    case 1:
-    {
-      memcpy(capabilities, &jvs_io_naomi, sizeof(JVSCapabilities));
-    }
-    }
+  case 1:
+    memcpy(capabilities, &jvs_io_naomi, sizeof(JVSCapabilities));
+    break;
   }
 
-  /* Set analogue according to numver of bits */
-  if (OPEN_JVS_ERR_OK == retval)
-  {
-    if (capabilities->analogueInBits > 16)
-    {
-      retval = OPEN_JVS_ERR_ANALOG_BITS;
-    }
-
-    /* Set max value that is supported for the set number of bits set for the analog channel */
-
-    uint16_t max = 0;
-    printf("jvs_analog_number_bits:%d\n", capabilities->analogueInBits);
-
-    for (int16_t i = 0; i < capabilities->analogueInBits; i++)
-    {
-      max |= (1 << i);
-    }
-
-    if (OPEN_JVS_ERR_OK == retval)
-    {
-      retval = jvs_set_analog_max(max);
-    }
-
-    printf("jvs_analog_max:%04X \n", capabilities->analogueMax);
-  }
+  // Set the maximum analogue values
+  if (capabilities->analogueInBits > 16)
+    return OPEN_JVS_ERR_ANALOG_BITS;
+  capabilities->analogueMax = pow(2, capabilities->analogueInBits) - 1;
 
   div_t switchDiv = div(capabilities->switches, 8);
   int switchBytes = switchDiv.quot + (switchDiv.rem ? 1 : 0);
@@ -87,53 +57,7 @@ open_jvs_status_t initIO(void)
 
   state.coinCount = 2;
 
-  return retval;
-}
-
-open_jvs_status_t jvs_get_analog_max(uint16_t *analog_max)
-{
-  open_jvs_status_t retval = OPEN_JVS_ERR_OK;
-  JVSCapabilities *capabilities;
-
-  capabilities = getCapabilities();
-
-  if (NULL == capabilities)
-  {
-    retval = OPEN_JVS_ERR_NULL;
-  }
-
-  if (NULL == analog_max)
-  {
-    retval = OPEN_JVS_ERR_NULL;
-  }
-
-  if (OPEN_JVS_ERR_OK == retval)
-  {
-    *analog_max = capabilities->analogueMax;
-  }
-
-  return retval;
-}
-
-open_jvs_status_t jvs_set_analog_max(uint16_t max)
-{
-  open_jvs_status_t retval = OPEN_JVS_ERR_OK;
-
-  JVSCapabilities *capabilities;
-
-  capabilities = getCapabilities();
-
-  if (NULL == capabilities)
-  {
-    retval = OPEN_JVS_ERR_NULL;
-  }
-
-  if (OPEN_JVS_ERR_OK == retval)
-  {
-    capabilities->analogueMax = max;
-  }
-
-  return retval;
+  return OPEN_JVS_ERR_OK;
 }
 
 int setSwitch(int player, int switchNumber, int value)
@@ -143,13 +67,13 @@ int setSwitch(int player, int switchNumber, int value)
 
   if (player > capabilities->players)
   {
-    printf("Error - That player does not exist.\n");
+    printf("Error: That player does not exist.\n");
     return 0;
   }
 
   if (switchNumber >= capabilities->switches)
   {
-    printf("Error - That switch does not exist.\n");
+    printf("Error: That switch does not exist.\n");
     return 0;
   }
 
@@ -173,14 +97,14 @@ int incrementCoin()
   state.coinCount++;
   return 1;
 }
+
 int setAnalogue(int channel, int value)
 {
-  JVSCapabilities *capabilities;
-  capabilities = getCapabilities();
+  JVSCapabilities *capabilities = getCapabilities();
 
   if (channel < capabilities->analogueInChannels)
   {
-    state.analogueChannel[channel] = value;
+    state.analogueChannel[channel] = value * capabilities->analogueMax;
     return 1;
   }
   return 0;
@@ -188,8 +112,7 @@ int setAnalogue(int channel, int value)
 
 int setRotary(int channel, int value)
 {
-  JVSCapabilities *capabilities;
-  capabilities = getCapabilities();
+  JVSCapabilities *capabilities = getCapabilities();
 
   if (channel < capabilities->rotaryChannels)
   {

@@ -9,17 +9,26 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdint.h>
+#include "definitions.h"
 
 #define sync_pin 12
-
-int SyncPinInit(void);
-void SyncPinLow(bool pull_low);
 
 #define IN 0
 #define OUT 1
 
 #define LOW 0
 #define HIGH 1
+
+typedef enum
+{
+    SENSE_FLOAT,
+    SENSE_SWITCH,
+    SENSE_NONE,
+} JVSSenseCircuit;
+
+int SyncPinInit(void);
+int SyncPinLow(bool pull_low);
+JVSStatus SyncAlgorithmSet(JVSSenseCircuit circuitType);
 
 int GPIOUnexport(int pin);
 int GPIOExport(int pin);

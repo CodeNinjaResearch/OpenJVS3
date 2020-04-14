@@ -3,6 +3,7 @@
 #include "constants.h"
 #include "definitions.h"
 #include "sync.h"
+#include "openjvs.h"
 
 /* Use for timeout between received bytes */
 time_t lastByteTime;
@@ -30,11 +31,18 @@ void print_msg(JVSPacket *msg)
   }
 }
 
-open_jvs_status_t initJVS(char *devicePath, JVSCapabilities *capabilitiesSetup)
+JVSStatus initJVS(char *devicePath, JVSCapabilities *capabilitiesSetup)
 {
-  open_jvs_status_t retval = OPEN_JVS_ERR_OK;
+  JVSStatus retval = OPEN_JVS_ERR_OK;
 
   initBuffer(&read_buffer);
+
+  /* Set Sync algorithm from settings */
+
+  SyncAlgorithmSet(SENSE_FLOAT);
+
+  // DEBUG
+  //SyncAlgorithmSet(SENSE_SWITCH);
 
   /* Init Sync Pin */
   SyncPinInit();
@@ -117,15 +125,15 @@ void debug(char *string)
   }
 }
 
-open_jvs_status_t processPacket(JVSPacket *inPacket, JVSPacket *outPacket)
+JVSStatus processPacket(JVSPacket *inPacket, JVSPacket *outPacket)
 {
-  open_jvs_status_t retval = OPEN_JVS_NO_RESPONSE;
+  JVSStatus retval = OPEN_JVS_NO_RESPONSE;
   JVSState *state = getState();
   JVSCapabilities *capabilities = getCapabilities();
 
   if ((NULL == inPacket) || (NULL == outPacket) || (NULL == state) || (NULL == capabilities))
   {
-    printf("arg state:%p capabilities:%p \n", state, capabilities);
+    printf("arg state:%p capabilities:%p \n", (void *)state, (void *)capabilities);
     retval = OPEN_JVS_ERR_NULL;
   }
 
@@ -206,7 +214,7 @@ open_jvs_status_t processPacket(JVSPacket *inPacket, JVSPacket *outPacket)
           outPacket->data[outPacket->length] = REPORT_SUCCESS;
           outPacket->length += 1;
 
-          outPacket->data[outPacket->length] = capabilities->jvs_command_version;
+          outPacket->data[outPacket->length] = capabilities->jvsCommandVersion;
           outPacket->length += 1;
 
           sizeCurrentCmd = CMD_LEN_CMD + 0;
@@ -300,42 +308,24 @@ open_jvs_status_t processPacket(JVSPacket *inPacket, JVSPacket *outPacket)
         {
           debug("CMD_READ_ANALOGS\n");
 
+          uint8_t rest_bits;
           uint8_t numberAnalogChannels = inPacket->data[inPacketIndex + CMD_LEN_CMD + 0];
 
           outPacket->data[outPacket->length] = REPORT_SUCCESS;
           outPacket->length += 1;
 
-          /* Ceil number bytes for analog value  */
-          uint8_t n_bytes = (capabilities->analogueInBits + 7) / 8;
-          uint8_t rest_bits = (capabilities->analogueInBits % 8);
+          rest_bits = 16 - capabilities->analogueInBits;
 
           for (uint32_t i = 0; i < numberAnalogChannels; i++)
           {
-            /* Set all bits of current channel to zero */
-            outPacket->data[outPacket->length] = 0;
-            outPacket->data[outPacket->length + 1] = 0;
+            uint16_t analog_data = state->analogueChannel[i] << rest_bits;
 
-            /* Begin at highes byte of analog value and work the way up to the lowest one.
-            * If a non multiple of 8bits is uses we have to shift the last byte to be left aligend.
-            */
-            for (uint8_t n = 0; n < n_bytes; n++)
-            {
-              uint8_t data = state->analogueChannel[i] >> ((capabilities->analogueInBits - 8) - (n * 8));
-
-              /* Is last byte and non multiple of a byte */
-              if (((n + 1) == n_bytes) && (0 != rest_bits))
-              {
-                /* Shift data to be left aligned */
-                data = state->analogueChannel[i] << (8 - rest_bits);
-              }
-
-              //printf("Data[%d]:%x \n", n, data);
-              outPacket->data[outPacket->length + n] = data;
-            }
+            /* Data must be "left aligned" */
+            outPacket->data[outPacket->length + 0] = analog_data >> 8;
+            outPacket->data[outPacket->length + 1] = analog_data >> 0;
 
             outPacket->length += 2;
           }
-
           sizeCurrentCmd = CMD_LEN_CMD + 1;
         }
         break;
@@ -343,41 +333,24 @@ open_jvs_status_t processPacket(JVSPacket *inPacket, JVSPacket *outPacket)
         case CMD_READ_ROTARY:
         {
           debug("CMD_READ_ROTARY\n");
+          uint8_t rest_bits;
           uint8_t numberAnalogChannels = inPacket->data[inPacketIndex + CMD_LEN_CMD + 0];
 
           outPacket->data[outPacket->length] = REPORT_SUCCESS;
           outPacket->length += 1;
 
-          /* Ceil number bytes for analog value  */
-          uint8_t n_bytes = (capabilities->analogueInBits + 7) / 8;
-          uint8_t rest_bits = (capabilities->analogueInBits % 8);
+          rest_bits = 16 - capabilities->analogueInBits;
 
           for (uint32_t i = 0; i < numberAnalogChannels; i++)
           {
-            /* Set all bits of current channel to zero */
-            outPacket->data[outPacket->length] = 0;
-            outPacket->data[outPacket->length + 1] = 0;
+            uint16_t analog_data = state->rotaryChannel[i] << rest_bits;
 
-            /* Begin at highes byte of analog value and work the way up to the lowest one.
-            * If a non multiple of 8bits is uses we have to shift the last byte to be left aligend.
-            */
-            for (uint8_t n = 0; n < n_bytes; n++)
-            {
-              uint8_t data = state->rotaryChannel[i] >> ((capabilities->analogueInBits - 8) - (n * 8));
-
-              /* Is last byte and non multiple of a byte */
-              if (((n + 1) == n_bytes) && (0 != rest_bits))
-              {
-                /* Shift data to be left aligned */
-                data = state->rotaryChannel[i] << (8 - rest_bits);
-              }
-
-              outPacket->data[outPacket->length + n] = data;
-            }
+            /* Data must be "left aligned" */
+            outPacket->data[outPacket->length + 0] = analog_data >> 8;
+            outPacket->data[outPacket->length + 1] = analog_data >> 0;
 
             outPacket->length += 2;
           }
-
           sizeCurrentCmd = CMD_LEN_CMD + 1;
         }
         break;
@@ -406,14 +379,16 @@ open_jvs_status_t processPacket(JVSPacket *inPacket, JVSPacket *outPacket)
           debug("CMD_WRITE_GPO");
           uint8_t numberBytes = inPacket->data[inPacketIndex + CMD_LEN_CMD + 0];
 
-          for (uint8_t i = 0; i < numberBytes; i++)
-          {
-            uint8_t thing = inPacket->data[inPacketIndex + CMD_LEN_CMD + 1 + i];
-            for (int j = 7; j >= 0; j--)
-            {
-              unsigned char bit = (thing >> j) & 1;
-            }
-          }
+          // Supress warning as logn we do not know what to do with values set by CMD_WRITE_GPO
+
+          // for (uint8_t i = 0; i < numberBytes; i++)
+          // {
+          //   uint8_t thing = inPacket->data[inPacketIndex + CMD_LEN_CMD + 1 + i];
+          //   for (int j = 7; j >= 0; j--)
+          //   {
+          //     unsigned char bit = (thing >> j) & 1;
+          //   }
+          // }
 
           outPacket->data[outPacket->length] = REPORT_SUCCESS;
           outPacket->length += 1;
@@ -476,9 +451,9 @@ void test_buffer()
   //uint8_t cmd[] = {0xE0, 0x01, 0x05, 0x11, 0x12, 0x13, 0x14, 0x50}; /* Multi Request */
 
   /* Multi Request CT*/
-  /* 0x20 digital input -> 2 Player * 2 byte = 4byte
+  /* 0x20 digital input -> 2 Player * 2 byte = 4byte */
   /* 0x22 analog -> 8 Channels *2 byte: 16 byte*/
-  /* 0x23 Rotary -> 8 Channesl * 2 byte = 16 byte*
+  /* 0x23 Rotary -> 8 Channesl * 2 byte = 16 byte*/
   /* 0x21 Coins: -> 2 slots : 2*2 bytes = 4 byte*/
 
   //uint8_t cmd[] = {0xE0, 0x01, 0x0a, 0x20, 0x02, 0x2, 0x22, 0x8, 0x23, 0x08, 0x21, 0x02, 0xa7};
@@ -491,7 +466,7 @@ void test_buffer()
 
   for (uint32_t i = 0; i < sizeof(cmd); i++)
   {
-    if (CIRC_BUFFER_ERR_OK != circ_buffer_push(&read_buffer, cmd[i]))
+    if (BUFFER_SUCCESS != pushToBuffer(&read_buffer, cmd[i]))
     {
       printf("circ_buffer_push returned error!");
       exit(-1);
@@ -503,10 +478,10 @@ void test_buffer()
 
 #endif
 
-open_jvs_status_t jvs_do(void)
+JVSStatus jvs_do(void)
 {
   static bool timeout_enable = false;
-  open_jvs_status_t retval = OPEN_JVS_ERR_OK;
+  JVSStatus retval = OPEN_JVS_ERR_OK;
   uint32_t request_len_raw;
 
 #ifndef OFFLINE_MODE
@@ -517,7 +492,7 @@ open_jvs_status_t jvs_do(void)
   {
     test_buffer();
   }
-  once = true;
+  //once = true;
 #endif
 
   packetOut.length = 0;
@@ -629,11 +604,11 @@ open_jvs_status_t jvs_do(void)
   return retval;
 }
 
-open_jvs_status_t find_start_of_message(Buffer *read_buffer)
+JVSStatus find_start_of_message(Buffer *read_buffer)
 {
   uint32_t bytes_available;
 
-  open_jvs_status_t retval = OPEN_JVS_ERR_OK;
+  JVSStatus retval = OPEN_JVS_ERR_OK;
 
   if (OPEN_JVS_ERR_OK == retval)
   {
@@ -703,14 +678,13 @@ open_jvs_status_t find_start_of_message(Buffer *read_buffer)
   return retval;
 }
 
-open_jvs_status_t decode_escape_circ(Buffer *read_buffer, JVSPacket *out_packet, uint32_t *out_raw_length)
+JVSStatus decode_escape_circ(Buffer *read_buffer, JVSPacket *out_packet, uint32_t *out_raw_length)
 {
-  open_jvs_status_t retval = OPEN_JVS_ERR_OK;
+  JVSStatus retval = OPEN_JVS_ERR_OK;
   uint32_t i, j = 0;
   bool next_escaped = false;
   uint32_t len_buffer_circ;
   uint32_t len_buffer_decoded;
-  uint32_t len_buffer_raw;
   uint8_t byte;
 
   if (OPEN_JVS_ERR_OK == retval)
@@ -779,9 +753,9 @@ open_jvs_status_t decode_escape_circ(Buffer *read_buffer, JVSPacket *out_packet,
   return retval;
 }
 
-open_jvs_status_t check_checksum(JVSPacket *packet)
+JVSStatus check_checksum(JVSPacket *packet)
 {
-  open_jvs_status_t retval = OPEN_JVS_ERR_OK;
+  JVSStatus retval = OPEN_JVS_ERR_OK;
 
   if (NULL == packet)
   {
@@ -801,9 +775,9 @@ open_jvs_status_t check_checksum(JVSPacket *packet)
   return retval;
 }
 
-open_jvs_status_t check_message(JVSPacket *packet)
+JVSStatus check_message(JVSPacket *packet)
 {
-  open_jvs_status_t retval = OPEN_JVS_ERR_OK;
+  JVSStatus retval = OPEN_JVS_ERR_OK;
 
   if (NULL == packet)
   {
@@ -841,9 +815,9 @@ uint8_t calc_checksum(uint8_t *message, uint8_t len)
   return checksum_calc;
 }
 
-open_jvs_status_t encode_escape(JVSPacket *packet)
+JVSStatus encode_escape(JVSPacket *packet)
 {
-  open_jvs_status_t retval = OPEN_JVS_ERR_OK;
+  JVSStatus retval = OPEN_JVS_ERR_OK;
 
   uint8_t temp[MAX_PACKET_SIZE];
   uint32_t len_new = 0;

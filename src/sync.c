@@ -2,62 +2,163 @@
 #include "jvs.h"
 #include "definitions.h"
 
+static JVSSenseCircuit circuitToUse = SENSE_FLOAT;
+
+JVSStatus SyncAlgorithmSet(JVSSenseCircuit circuitType)
+{
+	JVSStatus retval = OPEN_JVS_ERR_OK;
+
+	switch (circuitType)
+	{
+	case SENSE_FLOAT:
+	case SENSE_SWITCH:
+	{
+		circuitToUse = circuitType;
+	}
+	break;
+
+	default:
+	{
+		printf("**** Invalid Sync algorithm net: %u ****\n", circuitType);
+		retval = OPEN_JVS_ERR_INVALID_SYNC_CIRCUIT;
+	}
+	break;
+	}
+	return retval;
+}
+
 int SyncPinInit(void)
 {
 	int retval = 0;
 
-#ifdef USE_SYNC_PIN
-	/* GPIO SYNC PINS */
-	if ((retval = GPIOExport(sync_pin)) == -1)
+	/* Make Pin available */
+	switch (circuitToUse)
 	{
-		printf("Warning: Sync pin %d not available\n", sync_pin);
+	case SENSE_SWITCH:
+	case SENSE_FLOAT:
+		/* GPIO SYNC PINS */
+		retval = GPIOExport(sync_pin);
+		if (retval != 0)
+		{
+			printf("Warning: Sync pin %d not available\n", sync_pin);
+		}
+		break;
+
+	SYNC_NONE:
+		break;
 	}
-#endif
+
+	/* Config Pin*/
+	if (retval == 0)
+	{
+		switch (circuitToUse)
+		{
+		case SENSE_SWITCH:
+		{
+			retval = GPIODirection(sync_pin, OUT);
+			if (retval != 0)
+			{
+				printf("Warning: Sync pin %d could not be set to output\n", sync_pin);
+			}
+		}
+		break;
+
+		case SENSE_NONE:
+		case SENSE_FLOAT:
+			break;
+		}
+	}
 
 	SyncPinLow(false);
-
 	return retval;
 }
 
-void SyncPinLow(bool pull_low)
+int SyncPinLow(bool pull_low)
 {
-	bool error = false;
+	int error = 0;
 
 	if (pull_low)
 	{
-#ifdef USE_SYNC_PIN
-#if (SNYC_PIN_IMPLEMENTAION == SYNC_PIN_HW_SWITCH)
-		if (GPIODirection(sync_pin, OUT) == -1 || GPIOWrite(sync_pin, 1) == -1)
+		switch (circuitToUse)
 		{
-			printf("Warning: Failed to ground  pin %d\n", sync_pin);
-		}
-#elif (SNYC_PIN_IMPLEMENTAION == SYNC_PIN_HW_FLOAT)
-		if (GPIODirection(sync_pin, OUT) == -1 || GPIOWrite(sync_pin, 0) == -1)
+		case SENSE_SWITCH:
 		{
-			printf("Warning: Failed to ground  pin %d\n", sync_pin);
+			error = GPIOWrite(sync_pin, 1);
+
+			if (error != 0)
+			{
+				printf("Warning: Failed to ground  pin %d\n", sync_pin);
+			}
 		}
-#endif
-#endif
+		break;
+
+		case SENSE_FLOAT:
+		{
+			error = GPIODirection(sync_pin, OUT);
+
+			if (error == 0)
+			{
+				error = GPIOWrite(sync_pin, 0);
+			}
+
+			if (error != 0)
+			{
+				printf("Warning: Failed to ground  pin %d\n", sync_pin);
+			}
+		}
+		break;
+
+		case SENSE_NONE:
+			break;
+
+		default:
+		{
+			printf("Invalid Sync algorithm net: %u \n", circuitToUse);
+		}
+		break;
+		}
+
 		debug("Floated sync pin");
 	}
 	else
 	{
+		switch (circuitToUse)
+		{
+		case SENSE_SWITCH:
+		{
+			error = GPIOWrite(sync_pin, 0);
 
-#ifdef USE_SYNC_PIN
-#if (SNYC_PIN_IMPLEMENTAION == SYNC_PIN_HW_SWITCH)
-		if (GPIODirection(sync_pin, OUT) == -1 || GPIOWrite(sync_pin, 0) == -1)
-		{
-			printf("Warning: Failed to pull high pin %d\n", sync_pin);
+			if (error != 0)
+			{
+				printf("Warning: Failed to pull high pin %d\n", sync_pin);
+			}
 		}
-#elif (SNYC_PIN_IMPLEMENTAION == SYNC_PIN_HW_FLOAT)
-		if (GPIODirection(sync_pin, IN) == -1)
+		break;
+
+		case SENSE_FLOAT:
 		{
-			printf("Warning: Failed to float pin %d\n", sync_pin);
+			error = GPIODirection(sync_pin, IN);
+
+			if (error != 0)
+			{
+				printf("Warning: Failed to float pin %d\n", sync_pin);
+			}
 		}
-#endif
-#endif
+		break;
+
+		case SENSE_NONE:
+			break;
+
+		default:
+		{
+			printf("Invalid Sync algorithm net: %u \n", circuitToUse);
+		}
+		break;
+		}
+
 		debug("Grounded sync pin");
 	}
+	return error;
 }
 
 int GPIOExport(int pin)
@@ -162,13 +263,13 @@ int GPIOWrite(int pin, int value)
 	fd = open(path, O_WRONLY);
 	if (-1 == fd)
 	{
-		//fprintf(stderr, "Failed to open gpio value for writing!\n");
+		fprintf(stderr, "Failed to open gpio value for writing!\n");
 		return (-1);
 	}
 
 	if (1 != write(fd, &s_values_str[LOW == value ? 0 : 1], 1))
 	{
-		//fprintf(stderr, "Failed to write value!\n");
+		fprintf(stderr, "Failed to write value!\n");
 		return (-1);
 	}
 
