@@ -39,13 +39,17 @@ JVSStatus initJVS(char *devicePath, JVSCapabilities *capabilitiesSetup)
 
   /* Set Sync algorithm from settings */
 
-  SyncAlgorithmSet(SENSE_FLOAT);
-
-  // DEBUG
-  //SyncAlgorithmSet(SENSE_SWITCH);
-
-  /* Init Sync Pin */
-  SyncPinInit();
+  switch (config.syncType)
+  {
+  case 1:
+    SyncAlgorithmSet(SENSE_FLOAT);
+    SyncPinInit();
+    break;
+  case 2:
+    SyncAlgorithmSet(SENSE_SWITCH);
+    SyncPinInit();
+    break;
+  }
 
   /* Init the connection to the JVS-Master */
   initDevice(devicePath);

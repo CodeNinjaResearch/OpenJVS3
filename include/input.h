@@ -29,4 +29,6 @@ int isEventDevice(const struct dirent *dir);
 void printDeviceTree();
 void connectDevices();
 
+JVSConfig config;
+
 #endif // INPUT_H_

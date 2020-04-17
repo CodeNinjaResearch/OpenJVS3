@@ -22,6 +22,13 @@ int main(int argc, char **argv)
 
   printf("OpenJVS3\n");
 
+  /* Get the config */
+  if (processConfig("docs/global_config", &config) != OPEN_JVS_ERR_OK)
+  {
+    printf("Map file didn't work panic!\n");
+    strcpy(config.devicePath, "/dev/ttyUSB0");
+  }
+
   /* Setup the inputs on the computer */
   if (!initInput())
   {
@@ -30,7 +37,7 @@ int main(int argc, char **argv)
   }
 
   /* Setup the JVS Emulator with the RS485 path and capabilities */
-  retval = initJVS("/dev/ttyUSB0", &capabilities);
+  retval = initJVS(config.devicePath, &capabilities);
 
   if (OPEN_JVS_ERR_OK != retval)
   {
@@ -96,8 +103,9 @@ void handleSignal(int signal)
 {
   if (signal == 2)
   {
+    running = false;
     printf("Debug: closing\n");
-    stopThreads();
-    exit(0);
+    //stopThreads();
+    exit(EXIT_SUCCESS);
   }
 }

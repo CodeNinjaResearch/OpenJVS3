@@ -78,7 +78,11 @@ typedef enum
     SYSTEM_6,
     SYSTEM_7,
     SYSTEM_8,
-    COIN
+    COIN,
+    WII_POINT_1_X,
+    WII_POINT_1_Y,
+    WII_POINT_2_X,
+    WII_POINT_2_Y,
 } Mode;
 
 static const struct
@@ -128,7 +132,7 @@ static const struct
 typedef enum
 {
     KEY,
-    ABS,
+    ABS
 } InType;
 
 typedef enum
@@ -138,7 +142,7 @@ typedef enum
     BUTTON,
     ANALOGUE,
     ROTARY,
-    GUN
+    GUN,
 } OutType;
 
 typedef struct

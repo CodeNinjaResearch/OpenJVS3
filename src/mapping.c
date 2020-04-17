@@ -4,6 +4,8 @@
 #include <sys/select.h>
 #include "mapping.h"
 
+void *wiiThread(void *_args);
+
 #define test_bit(bit, array) (array[bit / 8] & (1 << (bit % 8)))
 
 int processMaps(Mapping *m)
@@ -71,6 +73,14 @@ int startThread(char *eventPath, char *mappingPathIn, char *mappingPathOut)
   strcpy(args->mappingPathIn, mappingPathIn);
   strcpy(args->mappingPathOut, mappingPathOut);
   pthread_create(&threadID[threadCount], NULL, deviceThread, args);
+  threadCount++;
+}
+
+int startWiiThread(char *eventPath, char *mappingPathIn, char *mappingPathOut)
+{
+  struct MappingThreadArguments *args = malloc(sizeof(struct MappingThreadArguments));
+  strcpy(args->eventPath, eventPath);
+  pthread_create(&threadID[threadCount], NULL, wiiThread, args);
   threadCount++;
 }
 
@@ -180,6 +190,7 @@ void *deviceThread(void *_args)
       switch (event.type)
       {
       case EV_ABS:
+
         if (m.analogueMapping[event.code].type != NONE)
         {
           float x = event.value;
@@ -226,6 +237,92 @@ void *deviceThread(void *_args)
       }
 
       // controlPrintStatus();
+    }
+  }
+
+  printf("Closing\n");
+  close(m.deviceFd);
+
+  return 0;
+}
+
+void *wiiThread(void *_args)
+{
+  printf("line 249\n");
+  /* Device threads run with standard linux prio */
+  set_realtime_priority(false);
+  printf("line 267\n");
+  struct MappingThreadArguments *args = (struct MappingThreadArguments *)_args;
+  char eventPath[4096];
+  printf("line 267\n");
+  strcpy(eventPath, args->eventPath);
+  printf("line 2wgwrgwrg67\n");
+  free(args);
+  printf("line 267\n");
+  Mapping m;
+
+  if ((m.deviceFd = open(eventPath, O_RDONLY)) == -1)
+  {
+    printf("mapping.c:initDevice(): Failed to open device file descriptor\n");
+    exit(-1);
+  }
+  printf("line 267\n");
+  struct input_event event;
+
+  int flags = fcntl(m.deviceFd, F_GETFL, 0);
+  fcntl(m.deviceFd, F_SETFL, flags | O_NONBLOCK);
+
+  int axisIndex;
+  uint8_t absoluteBitmask[ABS_MAX / 8 + 1];
+  float percentageDeadzone;
+  struct input_absinfo absoluteFeatures;
+
+  memset(absoluteBitmask, 0, sizeof(absoluteBitmask));
+  if (ioctl(m.deviceFd, EVIOCGBIT(EV_ABS, sizeof(absoluteBitmask)), absoluteBitmask) < 0)
+  {
+    perror("evdev ioctl");
+  }
+
+  fd_set file_descriptor;
+  struct timeval tv;
+
+  int x0 = 0;
+  int y0 = 0;
+  int x1 = 0;
+  int y1 = 0;
+
+  while (threadsRunning)
+  {
+    if (read(m.deviceFd, &event, sizeof event) > 0)
+    {
+
+      if (event.type == EV_ABS)
+      {
+        switch (event.code)
+        {
+        case 16:
+          x0 = event.value;
+          break;
+        case 17:
+          y0 = event.value;
+          break;
+        case 18:
+          x1 = event.value;
+          break;
+        case 19:
+          y1 = event.value;
+          break;
+        }
+      }
+
+      double middlex = x0 + x1 / 2.0;
+      double middley = y0 + y1 / 2.0;
+
+      int valuex = middlex;
+      int valuey = 768 - middley;
+      setAnalogue(0, valuex);
+      setAnalogue(1, valuey);
+      printf("%d, %d\n", valuex, valuey);
     }
   }
 

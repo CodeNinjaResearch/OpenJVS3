@@ -36,10 +36,19 @@ void connectDevices()
         if (access(temp, F_OK) != -1)
         {
             printf("Supported Device Found: %s\n", temp);
-            // DEBUG only
-            //startThread(devices[i].path, temp, "docs/maps/arcade/driving-race_tv");
-            //startThread(devices[i].path, temp, "docs/maps/arcade/driving-hummer");
-            startThread(devices[i].path, temp, "docs/maps/arcade/driving-generic");
+            char mappingName[4096];
+            strcpy(mappingName, "docs/maps/arcade/");
+            strcat(mappingName, config.defaultMapping);
+
+            if (strcmp(devices[i].name, "nintendo-wii-remote-ir") == 0)
+            {
+                printf("Starting wii thread\n");
+                startWiiThread(devices[i].path, temp, mappingName);
+            }
+            else
+            {
+                startThread(devices[i].path, temp, mappingName);
+            }
         }
     }
 }
