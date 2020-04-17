@@ -34,6 +34,8 @@ int main(int argc, char **argv)
     strcpy(config.devicePath, "/dev/ttyUSB0");
   }
 
+  printf("config on sync %d\n", config.syncType);
+
   /* Setup the inputs on the computer */
   if (!initInput())
   {

@@ -58,6 +58,14 @@ JVSStatus processConfig(char *filePath, JVSConfig *config)
                     trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
                     config->debugMode = atoi(token);
                 }
+
+                /* Grab default mapping */
+                if (strcmp(token, "DEFAULT_MAPPING") == 0)
+                {
+                    token = strtok(NULL, " ");
+                    trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
+                    strcpy(config->defaultMapping, token);
+                }
             }
             fgets(buffer, 1024, fp);
         }

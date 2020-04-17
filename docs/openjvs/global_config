@@ -7,10 +7,10 @@
 # --
 
 # The default game mapping
-DEFAULT_MAPPING driving_generic
+DEFAULT_MAPPING driving-generic
 
 # The default IO to emulate
-DEFAULT_IO open_jvs
+DEFAULT_IO open-jvs
 
 # The path of the RS485 Converter
 DEVICE_PATH /dev/ttyUSB0

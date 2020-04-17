@@ -33,6 +33,7 @@ void connectDevices()
     {
         char temp[4096] = DEFAULT_DEVICE_MAP_PATH;
         strcat(temp, devices[i].name);
+        printf("access atemp %s\n", temp);
         if (access(temp, F_OK) != -1)
         {
             printf("Supported Device Found: %s\n", temp);
@@ -47,6 +48,7 @@ void connectDevices()
             }
             else
             {
+                printf("starting thread (%s,%s,%s)\n", devices[i].path, temp, mappingName);
                 startThread(devices[i].path, temp, mappingName);
             }
         }
