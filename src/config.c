@@ -66,6 +66,14 @@ JVSStatus processConfig(char *filePath, JVSConfig *config)
                     trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
                     strcpy(config->defaultMapping, token);
                 }
+
+                /* Get IO Choice */
+                if (strcmp(token, "DEFAULT_IO") == 0)
+                {
+                    token = strtok(NULL, " ");
+                    trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
+                    config->defaultIO = atoi(token);
+                }
             }
             fgets(buffer, 1024, fp);
         }

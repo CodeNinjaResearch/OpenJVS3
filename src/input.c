@@ -10,6 +10,7 @@ int initInput()
         printf("Error: Failed to scan inputs correctly\n");
         return 0;
     }
+    sleep(1);
     connectDevices();
     return 1;
 }
@@ -29,26 +30,26 @@ void printDeviceTree()
 
 void connectDevices()
 {
+    printf("Inputs:\n");
     for (int i = 0; i < deviceCount; i++)
     {
         char temp[4096] = DEFAULT_DEVICE_MAP_PATH;
         strcat(temp, devices[i].name);
-        printf("access atemp %s\n", temp);
         if (access(temp, F_OK) != -1)
         {
-            printf("Supported Device Found: %s\n", temp);
+            printf("\t%s\n", devices[i].name);
             char mappingName[4096];
             strcpy(mappingName, DEFAULT_ARCADE_MAP_PATH);
             strcat(mappingName, config.defaultMapping);
 
             if (strcmp(devices[i].name, "nintendo-wii-remote-ir") == 0)
             {
-                printf("Starting wii thread\n");
+                printf("\tNintendo Wii Remote\n");
                 startWiiThread(devices[i].path, temp, mappingName);
             }
             else
             {
-                printf("starting thread (%s,%s,%s)\n", devices[i].path, temp, mappingName);
+                sleep(1);
                 startThread(devices[i].path, temp, mappingName);
             }
         }

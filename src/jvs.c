@@ -234,7 +234,7 @@ JVSStatus processPacket(JVSPacket *inPacket, JVSPacket *outPacket)
           debug("CMD_JVS_VERSION");
           outPacket->data[outPacket->length] = REPORT_SUCCESS;
           outPacket->length += 1;
-          outPacket->data[outPacket->length] = capabilities->jvs_version;
+          outPacket->data[outPacket->length] = capabilities->jvsVersion;
           outPacket->length += 1;
 
           sizeCurrentCmd = CMD_LEN_CMD + 0;
@@ -247,7 +247,7 @@ JVSStatus processPacket(JVSPacket *inPacket, JVSPacket *outPacket)
 
           outPacket->data[outPacket->length] = REPORT_SUCCESS;
           outPacket->length += 1;
-          outPacket->data[outPacket->length] = capabilities->jvs_com_version;
+          outPacket->data[outPacket->length] = capabilities->jvsComVersion;
           outPacket->length += 1;
 
           sizeCurrentCmd = CMD_LEN_CMD + 0;

@@ -25,7 +25,7 @@ int main(int argc, char **argv)
 
   signal(SIGINT, handleSignal);
 
-  printf("OpenJVS (Version %s.%s.%s)\n", PROJECT_VER_MAJOR, PROJECT_VER_MINOR, PROJECT_VER_PATCH);
+  printf("OpenJVS (Version %s.%s.%s)\n\n", PROJECT_VER_MAJOR, PROJECT_VER_MINOR, PROJECT_VER_PATCH);
 
   /* Get the config */
   if (processConfig(DEFAULT_GLOBAL_CONFIG_PATH, &config) != OPEN_JVS_ERR_OK)
@@ -34,8 +34,6 @@ int main(int argc, char **argv)
     strcpy(config.devicePath, "/dev/ttyUSB0");
   }
 
-  printf("config on sync %d\n", config.syncType);
-
   /* Setup the inputs on the computer */
   if (!initInput())
   {
@@ -43,9 +41,10 @@ int main(int argc, char **argv)
     return 1;
   }
 
+  printf("Output:\n\t%s\n", config.defaultMapping);
+
   /* Setup the JVS Emulator with the RS485 path and capabilities */
   retval = initJVS(config.devicePath, &capabilities);
-
   if (OPEN_JVS_ERR_OK != retval)
   {
     printf("initJVS() returned:%d \n", retval);
@@ -56,6 +55,7 @@ int main(int argc, char **argv)
   set_realtime_priority(true);
 
   /* Process packets forever */
+  printf("\nRunning...\n");
   while (running)
   {
     retval = jvs_do();
@@ -88,7 +88,7 @@ int main(int argc, char **argv)
     /* Errors */
     default:
     {
-      printf("***** jvs main loop returned:%d ****\n", retval);
+      printf("\tWarning: Main loop returned %d\n", retval);
 
       // todo: uncomment later once all non-critical errors defined
       //running = false;
@@ -99,7 +99,7 @@ int main(int argc, char **argv)
   /* Close the file pointer */
   if (!disconnectJVS())
   {
-    printf("Error: Couldn't disconnect from serial\n");
+    printf("\tError: Couldn't disconnect from serial\n");
     return 1;
   }
 
@@ -111,7 +111,7 @@ void handleSignal(int signal)
   if (signal == 2)
   {
     running = false;
-    printf("Debug: closing\n");
+    printf("\tDebug: closing\n");
     exit(EXIT_SUCCESS);
   }
 }

@@ -3,6 +3,8 @@
 
 #include "definitions.h"
 #include "io.h"
+#include "config.h"
+#include "openjvs.h"
 
 JVSState state;
 
@@ -18,15 +20,17 @@ JVSStatus initIO(void)
 
   // Copy the correct IO capabilities over
   memset(capabilities, 0, sizeof(JVSCapabilities));
-  uint8_t ioChoice = 1;
-  switch (ioChoice)
+  printf("IO Emulation:\n");
+  switch (config.defaultIO)
   {
   case 0:
     memcpy(capabilities, &jvs_io_lindbergh, sizeof(JVSCapabilities));
+    printf("\tSega Type 3 IO Board\n");
     break;
 
   case 1:
     memcpy(capabilities, &jvs_io_naomi, sizeof(JVSCapabilities));
+    printf("\tCustom OpenJVS IO Board\n");
     break;
   }
 

@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <sys/select.h>
 #include "mapping.h"
+#include "jvs.h"
 
 void *wiiThread(void *_args);
 
@@ -24,7 +25,7 @@ int processMaps(Mapping *m)
       m->keyMapping[m->insideMappings[i].channel] = findMapping(m->insideMappings[i].mode, m);
       break;
     default:
-      printf("Mapping.c: Unknown inside mapping case\n");
+      printf("\tMapping.c: Unknown inside mapping case\n");
     }
   }
 }
@@ -38,7 +39,10 @@ MappingOut findMapping(Mode mode, Mapping *m)
       return m->outsideMappings[i];
     }
   }
-  printf("Warning: This outside map doesn't support %s\n", modeEnumToString(mode));
+  if (debugEnabled)
+  {
+    printf("\tWarning: This outside map doesn't support %s\n", modeEnumToString(mode));
+  }
   return m->outsideMappings[1];
 }
 
