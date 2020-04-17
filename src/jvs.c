@@ -4,6 +4,7 @@
 #include "definitions.h"
 #include "sync.h"
 #include "openjvs.h"
+#include "config.h"
 
 /* Use for timeout between received bytes */
 time_t lastByteTime;
@@ -50,6 +51,9 @@ JVSStatus initJVS(char *devicePath, JVSCapabilities *capabilitiesSetup)
     SyncPinInit();
     break;
   }
+
+  /* Decide on debug */
+  debugEnabled = config.debugMode;
 
   /* Init the connection to the JVS-Master */
   initDevice(devicePath);

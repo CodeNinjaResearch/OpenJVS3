@@ -31,13 +31,13 @@ void connectDevices()
 {
     for (int i = 0; i < deviceCount; i++)
     {
-        char temp[4096] = DEFAULT_DEVICE_MAP;
+        char temp[4096] = DEFAULT_DEVICE_MAP_PATH;
         strcat(temp, devices[i].name);
         if (access(temp, F_OK) != -1)
         {
             printf("Supported Device Found: %s\n", temp);
             char mappingName[4096];
-            strcpy(mappingName, "docs/maps/arcade/");
+            strcpy(mappingName, DEFAULT_ARCADE_MAP_PATH);
             strcat(mappingName, config.defaultMapping);
 
             if (strcmp(devices[i].name, "nintendo-wii-remote-ir") == 0)

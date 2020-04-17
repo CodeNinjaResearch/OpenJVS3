@@ -1,7 +1,12 @@
 #include "openjvs.h"
-#include "buffer.h"
-#include "stdio.h"
+
 #include <unistd.h>
+#include <stdio.h>
+#include <signal.h>
+
+#include "buffer.h"
+#include "jvs.h"
+#include "input.h"
 
 int running = 1;
 
@@ -20,10 +25,10 @@ int main(int argc, char **argv)
 
   signal(SIGINT, handleSignal);
 
-  printf("OpenJVS3\n");
+  printf("OpenJVS (Version %s.%s.%s)\n", PROJECT_VER_MAJOR, PROJECT_VER_MINOR, PROJECT_VER_PATCH);
 
   /* Get the config */
-  if (processConfig("docs/global_config", &config) != OPEN_JVS_ERR_OK)
+  if (processConfig(DEFAULT_GLOBAL_CONFIG_PATH, &config) != OPEN_JVS_ERR_OK)
   {
     printf("Map file didn't work panic!\n");
     strcpy(config.devicePath, "/dev/ttyUSB0");
@@ -105,7 +110,6 @@ void handleSignal(int signal)
   {
     running = false;
     printf("Debug: closing\n");
-    //stopThreads();
     exit(EXIT_SUCCESS);
   }
 }

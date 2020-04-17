@@ -16,7 +16,7 @@ DEFAULT_IO open_jvs
 DEVICE_PATH /dev/ttyUSB0
 
 # The type of sync circuit to use (0 no circuit, 1 float, 2 switch)
-SYNC_TYPE 0
+SYNC_TYPE 1
 
 # Output debug info
-DEBUG_MODE 0
+DEBUG_MODE 1

@@ -8,9 +8,12 @@
         "stdbool.h": "c",
         "cstdbool": "c",
         "jvs.h": "c",
-        "sync.h": "c"
+        "sync.h": "c",
+        "*.in": "cpp"
     },
     "editor.formatOnPaste": true,
     "editor.formatOnSave": true,
-    "editor.formatOnType": true
+    "editor.formatOnType": true,
+    "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools",
+    "cmake.configureOnOpen": true
 }

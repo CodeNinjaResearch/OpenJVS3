@@ -7,10 +7,9 @@
 
 #include "definitions.h"
 
-#define DEFAULT_LOCATION "/etc/openjvs"
-#define DEFAULT_GLOBAL_CONFIG "/global_config"
-#define DEFAULT_DEFAULT_CONFIG "/maps/default_config"
-#define DEFAULT_DEVICE_MAP "docs/maps/device/"
+#define DEFAULT_GLOBAL_CONFIG_PATH "/usr/etc/openjvs/global_config"
+#define DEFAULT_DEVICE_MAP_PATH "/usr/etc/openjvs/maps/device/"
+#define DEFAULT_ARCADE_MAP_PATH "/usr/etc/openjvs/maps/arcade/"
 
 #define MAX_STRING_LENGTH 1024
 

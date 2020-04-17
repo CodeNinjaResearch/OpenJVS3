@@ -248,17 +248,13 @@ void *deviceThread(void *_args)
 
 void *wiiThread(void *_args)
 {
-  printf("line 249\n");
   /* Device threads run with standard linux prio */
   set_realtime_priority(false);
-  printf("line 267\n");
   struct MappingThreadArguments *args = (struct MappingThreadArguments *)_args;
   char eventPath[4096];
-  printf("line 267\n");
   strcpy(eventPath, args->eventPath);
-  printf("line 2wgwrgwrg67\n");
   free(args);
-  printf("line 267\n");
+
   Mapping m;
 
   if ((m.deviceFd = open(eventPath, O_RDONLY)) == -1)
@@ -266,7 +262,6 @@ void *wiiThread(void *_args)
     printf("mapping.c:initDevice(): Failed to open device file descriptor\n");
     exit(-1);
   }
-  printf("line 267\n");
   struct input_event event;
 
   int flags = fcntl(m.deviceFd, F_GETFL, 0);
