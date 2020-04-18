@@ -67,7 +67,7 @@ int disconnectJVS()
 
 int writeCapabilities(JVSPacket *outputPacket, JVSCapabilities *capabilities)
 {
-  outputPacket->data[outputPacket->length] = REPORT_SUCCESS;
+  outputPacket->data[outputPacket->length] = STATUS_SUCCESS;
   outputPacket->length += 1;
 
   if (capabilities->players > 0)
@@ -75,6 +75,15 @@ int writeCapabilities(JVSPacket *outputPacket, JVSCapabilities *capabilities)
     outputPacket->data[outputPacket->length] = CAP_PLAYERS;
     outputPacket->data[outputPacket->length + 1] = capabilities->players;
     outputPacket->data[outputPacket->length + 2] = capabilities->switches;
+    outputPacket->data[outputPacket->length + 3] = CAP_END;
+    outputPacket->length += 4;
+  }
+
+  if (capabilities->coins > 0)
+  {
+    outputPacket->data[outputPacket->length] = CAP_COINS;
+    outputPacket->data[outputPacket->length + 1] = capabilities->coins;
+    outputPacket->data[outputPacket->length + 2] = 0x00;
     outputPacket->data[outputPacket->length + 3] = CAP_END;
     outputPacket->length += 4;
   }
@@ -97,19 +106,19 @@ int writeCapabilities(JVSPacket *outputPacket, JVSCapabilities *capabilities)
     outputPacket->length += 4;
   }
 
-  if (capabilities->coins > 0)
+  if (capabilities->generalPurposeOutputs > 0)
   {
-    outputPacket->data[outputPacket->length] = CAP_COINS;
-    outputPacket->data[outputPacket->length + 1] = capabilities->coins;
+    outputPacket->data[outputPacket->length] = CAP_GPO;
+    outputPacket->data[outputPacket->length + 1] = capabilities->generalPurposeOutputs;
     outputPacket->data[outputPacket->length + 2] = 0x00;
     outputPacket->data[outputPacket->length + 3] = CAP_END;
     outputPacket->length += 4;
   }
 
-  if (capabilities->generalPurposeOutputs > 0)
+  if (capabilities->analogueOutChannels > 0)
   {
-    outputPacket->data[outputPacket->length] = CAP_GPO;
-    outputPacket->data[outputPacket->length + 1] = capabilities->generalPurposeOutputs;
+    outputPacket->data[outputPacket->length] = CAP_ANALOG_OUT;
+    outputPacket->data[outputPacket->length + 1] = capabilities->analogueOutChannels;
     outputPacket->data[outputPacket->length + 2] = 0x00;
     outputPacket->data[outputPacket->length + 3] = CAP_END;
     outputPacket->length += 4;
