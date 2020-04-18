@@ -16,7 +16,7 @@
 typedef struct JVSConfig
 {
     char devicePath[MAX_STRING_LENGTH];
-    int syncType;
+    int senseType;
     char defaultMapping[MAX_STRING_LENGTH];
     int defaultIO;
     int debugMode;

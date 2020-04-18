@@ -1,4 +1,4 @@
-#include "sync.h"
+#include "sense.h"
 #include "jvs.h"
 #include "definitions.h"
 
@@ -37,10 +37,10 @@ int SyncPinInit(void)
 	case SENSE_SWITCH:
 	case SENSE_FLOAT:
 		/* GPIO SYNC PINS */
-		retval = GPIOExport(sync_pin);
+		retval = GPIOExport(SENSE_PIN);
 		if (retval != 0)
 		{
-			printf("Warning: Sync pin %d not available\n", sync_pin);
+			printf("Warning: Sync pin %d not available\n", SENSE_PIN);
 		}
 		break;
 
@@ -55,10 +55,10 @@ int SyncPinInit(void)
 		{
 		case SENSE_SWITCH:
 		{
-			retval = GPIODirection(sync_pin, OUT);
+			retval = GPIODirection(SENSE_PIN, OUT);
 			if (retval != 0)
 			{
-				printf("Warning: Sync pin %d could not be set to output\n", sync_pin);
+				printf("Warning: Sync pin %d could not be set to output\n", SENSE_PIN);
 			}
 		}
 		break;
@@ -83,27 +83,27 @@ int SyncPinLow(bool pull_low)
 		{
 		case SENSE_SWITCH:
 		{
-			error = GPIOWrite(sync_pin, 1);
+			error = GPIOWrite(SENSE_PIN, 1);
 
 			if (error != 0)
 			{
-				printf("Warning: Failed to ground  pin %d\n", sync_pin);
+				printf("Warning: Failed to ground  pin %d\n", SENSE_PIN);
 			}
 		}
 		break;
 
 		case SENSE_FLOAT:
 		{
-			error = GPIODirection(sync_pin, OUT);
+			error = GPIODirection(SENSE_PIN, OUT);
 
 			if (error == 0)
 			{
-				error = GPIOWrite(sync_pin, 0);
+				error = GPIOWrite(SENSE_PIN, 0);
 			}
 
 			if (error != 0)
 			{
-				printf("Warning: Failed to ground  pin %d\n", sync_pin);
+				printf("Warning: Failed to ground  pin %d\n", SENSE_PIN);
 			}
 		}
 		break;
@@ -118,7 +118,7 @@ int SyncPinLow(bool pull_low)
 		break;
 		}
 
-		debug("Floated sync pin");
+		debug("Floated sense pin");
 	}
 	else
 	{
@@ -126,22 +126,22 @@ int SyncPinLow(bool pull_low)
 		{
 		case SENSE_SWITCH:
 		{
-			error = GPIOWrite(sync_pin, 0);
+			error = GPIOWrite(SENSE_PIN, 0);
 
 			if (error != 0)
 			{
-				printf("Warning: Failed to pull high pin %d\n", sync_pin);
+				printf("Warning: Failed to pull high pin %d\n", SENSE_PIN);
 			}
 		}
 		break;
 
 		case SENSE_FLOAT:
 		{
-			error = GPIODirection(sync_pin, IN);
+			error = GPIODirection(SENSE_PIN, IN);
 
 			if (error != 0)
 			{
-				printf("Warning: Failed to float pin %d\n", sync_pin);
+				printf("Warning: Failed to float pin %d\n", SENSE_PIN);
 			}
 		}
 		break;
@@ -156,7 +156,7 @@ int SyncPinLow(bool pull_low)
 		break;
 		}
 
-		debug("Grounded sync pin");
+		debug("Grounded sense pin");
 	}
 	return error;
 }

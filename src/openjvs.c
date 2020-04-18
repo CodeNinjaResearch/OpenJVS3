@@ -10,14 +10,9 @@
 
 int running = 1;
 
-Buffer read_buffer;
+Buffer readBuffer;
 /* Setup the IO we are trying to emulate */
 JVSCapabilities capabilities;
-
-JVSCapabilities *getCapabilities()
-{
-  return &capabilities;
-}
 
 int main(int argc, char **argv)
 {
@@ -41,10 +36,24 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  printf("Output:\n\t%s\n", config.defaultMapping);
+  /* Init the IO */
+  JVSCapabilities *capabilities;
+  switch (config.defaultIO)
+  {
+  case 0:
+    capabilities = &SegaType3IO;
+    printf("JVS IO:\tSega Type 3 IO Board\n");
+    break;
+
+  case 1:
+    capabilities = &OpenJVSCustomIO;
+    printf("JVS IO:\tCustom OpenJVS IO Board\n");
+    break;
+  }
+  initIO(capabilities);
 
   /* Setup the JVS Emulator with the RS485 path and capabilities */
-  retval = initJVS(config.devicePath, &capabilities);
+  retval = initJVS(config.devicePath);
   if (OPEN_JVS_ERR_OK != retval)
   {
     printf("initJVS() returned:%d \n", retval);
@@ -71,6 +80,7 @@ int main(int argc, char **argv)
     {
     /* Status that are normal */
     case OPEN_JVS_ERR_OK:
+    case OPEN_JVS_ERR_REC_BUFFER:
     case OPEN_JVS_ERR_TIMEOUT:
     case OPEN_JVS_ERR_SYNC_BYTE:
     case OPEN_JVS_NO_RESPONSE:
@@ -88,7 +98,7 @@ int main(int argc, char **argv)
     /* Errors */
     default:
     {
-      printf("\tWarning: Main loop returned %d\n", retval);
+      printf("Warning: Main loop returned %d\n", retval);
 
       // todo: uncomment later once all non-critical errors defined
       //running = false;
@@ -99,7 +109,7 @@ int main(int argc, char **argv)
   /* Close the file pointer */
   if (!disconnectJVS())
   {
-    printf("\tError: Couldn't disconnect from serial\n");
+    printf("Error: Couldn't disconnect from serial\n");
     return 1;
   }
 
@@ -111,7 +121,7 @@ void handleSignal(int signal)
   if (signal == 2)
   {
     running = false;
-    printf("\tDebug: closing\n");
+    printf("Warning: Shutting down\n");
     exit(EXIT_SUCCESS);
   }
 }

@@ -15,7 +15,7 @@ DEFAULT_IO 1
 # The path of the RS485 Converter
 DEVICE_PATH /dev/ttyUSB0
 
-# The type of sync circuit to use (0 no circuit, 1 float, 2 switch)
+# The type of sense circuit to use (0 no circuit, 1 float, 2 switch)
 SYNC_TYPE 1
 
 # Output debug info

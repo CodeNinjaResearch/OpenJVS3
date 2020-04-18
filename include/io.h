@@ -17,6 +17,7 @@ typedef struct
 
 typedef struct
 {
+    char name[4096];
     uint8_t players;
     uint8_t switches;
     uint8_t coins;
@@ -36,7 +37,6 @@ typedef struct
     uint8_t displayOutColumns;
     uint8_t displayOutEncodings;
     uint8_t backup;
-    char name[4096];
 
     uint8_t jvsCommandVersion;
     uint8_t jvsVersion;
@@ -46,7 +46,7 @@ typedef struct
 
 } JVSCapabilities;
 
-static const JVSCapabilities jvs_io_lindbergh =
+static JVSCapabilities SegaType3IO =
     {
         .name = "SEGA CORPORATION;I/O BD JVS;837-14572;Ver1.00;2005/10",
         .players = 2,
@@ -61,7 +61,7 @@ static const JVSCapabilities jvs_io_lindbergh =
         .generalPurposeOutputs = 20,
 };
 
-static const JVSCapabilities jvs_io_naomi =
+static JVSCapabilities OpenJVSCustomIO =
     {
         .name = "OpenJVS Emulator;I/O BD JVS;837-13551;Ver1.00;98/10",
         .players = 2,
@@ -76,12 +76,12 @@ static const JVSCapabilities jvs_io_naomi =
         .generalPurposeOutputs = 6,
 };
 
-JVSStatus initIO(/* JVSCapabilities *capabilitiesSetup*/);
+JVSStatus initIO(JVSCapabilities *capabilitiesSetup);
 int setSwitch(int player, int switchNumber, int value);
 int incrementCoin();
 int setAnalogue(int channel, double value);
 int setRotary(int channel, double value);
-void controlPrintStatus();
 JVSState *getState();
+JVSCapabilities *getCapabilities();
 
 #endif // DEVICE_H_

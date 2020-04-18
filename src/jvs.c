@@ -2,7 +2,7 @@
 #include "jvs.h"
 #include "constants.h"
 #include "definitions.h"
-#include "sync.h"
+#include "sense.h"
 #include "openjvs.h"
 #include "config.h"
 
@@ -13,7 +13,7 @@ time_t currentByteTime;
 int deviceID = -1;
 int debugEnabled = 0;
 
-Buffer read_buffer;
+Buffer readBuffer;
 
 JVSPacket packetIn;
 JVSPacket packetOut;
@@ -32,15 +32,14 @@ void print_msg(JVSPacket *msg)
   }
 }
 
-JVSStatus initJVS(char *devicePath, JVSCapabilities *capabilitiesSetup)
+JVSStatus initJVS(char *devicePath)
 {
   JVSStatus retval = OPEN_JVS_ERR_OK;
 
-  initBuffer(&read_buffer);
+  initBuffer(&readBuffer);
 
   /* Set Sync algorithm from settings */
-
-  switch (config.syncType)
+  switch (config.senseType)
   {
   case 1:
     SyncAlgorithmSet(SENSE_FLOAT);
@@ -57,9 +56,6 @@ JVSStatus initJVS(char *devicePath, JVSCapabilities *capabilitiesSetup)
 
   /* Init the connection to the JVS-Master */
   initDevice(devicePath);
-
-  /* Init the Virtual IO */
-  retval = initIO(capabilitiesSetup);
 
   return retval;
 }
@@ -493,7 +489,7 @@ JVSStatus jvs_do(void)
   uint32_t request_len_raw;
 
 #ifndef OFFLINE_MODE
-  retval = read_serial(/*serial */ &read_buffer);
+  retval = read_serial(/*serial */ &readBuffer);
 #else
   static bool once = false;
   if (!once)
@@ -515,19 +511,19 @@ JVSStatus jvs_do(void)
   /* Find start sequence in circ buffer*/
   if ((OPEN_JVS_ERR_OK == retval) || (OPEN_JVS_ERR_WAIT_BYTES == retval))
   {
-    retval = find_start_of_message(&read_buffer);
+    retval = find_start_of_message(&readBuffer);
 
     if (debugEnabled)
     {
       debug("Received Message: \n");
-      printBuffer(&read_buffer);
+      printBuffer(&readBuffer);
     }
   }
 
   /* Remove escape sequence and store in request*/
   if (OPEN_JVS_ERR_OK == retval)
   {
-    retval = decode_escape_circ(&read_buffer, &packetIn, &request_len_raw);
+    retval = decode_escape_circ(&readBuffer, &packetIn, &request_len_raw);
 
     if (debugEnabled)
     {
@@ -549,7 +545,7 @@ JVSStatus jvs_do(void)
     /* Remove processed request from circ read-buffer */
     if ((OPEN_JVS_ERR_OK == retval) || (OPEN_JVS_ERR_CHECKSUM == retval))
     {
-      if (BUFFER_SUCCESS != discardFromBuffer(&read_buffer, request_len_raw))
+      if (BUFFER_SUCCESS != discardFromBuffer(&readBuffer, request_len_raw))
       {
         printf("%d\n", __LINE__);
         retval = OPEN_JVS_ERR_REC_BUFFER;
@@ -600,7 +596,7 @@ JVSStatus jvs_do(void)
   {
     deviceID = -1;
     /* Flush receive buffer and start over */
-    initBuffer(&read_buffer);
+    initBuffer(&readBuffer);
 
     SyncPinLow(0);
     if (debugEnabled)

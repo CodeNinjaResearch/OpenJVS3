@@ -25,7 +25,7 @@ int processMaps(Mapping *m)
       m->keyMapping[m->insideMappings[i].channel] = findMapping(m->insideMappings[i].mode, m);
       break;
     default:
-      printf("\tMapping.c: Unknown inside mapping case\n");
+      printf("Error: Unknown inside mapping case\n");
     }
   }
 }
@@ -41,7 +41,7 @@ MappingOut findMapping(Mode mode, Mapping *m)
   }
   if (debugEnabled)
   {
-    printf("\tWarning: This outside map doesn't support %s\n", modeEnumToString(mode));
+    printf("Warning: This outside map doesn't support %s\n", modeEnumToString(mode));
   }
   return m->outsideMappings[1];
 }

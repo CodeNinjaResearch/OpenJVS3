@@ -8,7 +8,7 @@
         "stdbool.h": "c",
         "cstdbool": "c",
         "jvs.h": "c",
-        "sync.h": "c",
+        "sense.h": "c",
         "*.in": "cpp"
     },
     "editor.formatOnPaste": true,

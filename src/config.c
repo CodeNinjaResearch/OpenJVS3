@@ -43,12 +43,12 @@ JVSStatus processConfig(char *filePath, JVSConfig *config)
                     strcpy(config->devicePath, token);
                 }
 
-                /* Grab sync type */
-                if (strcmp(token, "SYNC_TYPE") == 0)
+                /* Grab sense type */
+                if (strcmp(token, "SENSE_TYPE") == 0)
                 {
                     token = strtok(NULL, " ");
                     trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
-                    config->syncType = atoi(token);
+                    config->senseType = atoi(token);
                 }
 
                 /* Grab debug type */

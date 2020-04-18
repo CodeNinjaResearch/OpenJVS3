@@ -4,44 +4,26 @@
 #include "definitions.h"
 #include "io.h"
 #include "config.h"
-#include "openjvs.h"
 
 JVSState state;
+JVSCapabilities capabilities;
 
-JVSCapabilities *getCapabilities();
-JVSState *getState();
-
-JVSStatus initIO(void)
+JVSStatus initIO(JVSCapabilities *initialCapabilities)
 {
-  JVSCapabilities *capabilities = getCapabilities();
-
-  if (capabilities == NULL)
+  if (initialCapabilities == NULL)
     return OPEN_JVS_ERR_NULL;
 
-  // Copy the correct IO capabilities over
-  memset(capabilities, 0, sizeof(JVSCapabilities));
-  printf("IO Emulation:\n");
-  switch (config.defaultIO)
-  {
-  case 0:
-    memcpy(capabilities, &jvs_io_lindbergh, sizeof(JVSCapabilities));
-    printf("\tSega Type 3 IO Board\n");
-    break;
-
-  case 1:
-    memcpy(capabilities, &jvs_io_naomi, sizeof(JVSCapabilities));
-    printf("\tCustom OpenJVS IO Board\n");
-    break;
-  }
+  memcpy(&capabilities, &initialCapabilities, sizeof(JVSCapabilities));
 
   // Set the maximum analogue values
-  if (capabilities->analogueInBits > 16)
+  if (capabilities.analogueInBits > 16)
     return OPEN_JVS_ERR_ANALOG_BITS;
-  capabilities->analogueMax = pow(2, capabilities->analogueInBits) - 1;
 
-  div_t switchDiv = div(capabilities->switches, 8);
+  capabilities.analogueMax = pow(2, capabilities.analogueInBits) - 1;
+
+  div_t switchDiv = div(capabilities.switches, 8);
   int switchBytes = switchDiv.quot + (switchDiv.rem ? 1 : 0);
-  for (int players = 0; players < (capabilities->players + 1); players++)
+  for (int players = 0; players < (capabilities.players + 1); players++)
   {
     for (int switches = 0; switches < switchBytes; switches++)
     {
@@ -49,12 +31,12 @@ JVSStatus initIO(void)
     }
   }
 
-  for (int analogueChannels = 0; analogueChannels < capabilities->analogueInChannels; analogueChannels++)
+  for (int analogueChannels = 0; analogueChannels < capabilities.analogueInChannels; analogueChannels++)
   {
     state.analogueChannel[analogueChannels] = 0;
   }
 
-  for (int rotaryChannels = 0; rotaryChannels < capabilities->rotaryChannels; rotaryChannels++)
+  for (int rotaryChannels = 0; rotaryChannels < capabilities.rotaryChannels; rotaryChannels++)
   {
     state.rotaryChannel[rotaryChannels] = 0;
   }
@@ -66,16 +48,13 @@ JVSStatus initIO(void)
 
 int setSwitch(int player, int switchNumber, int value)
 {
-  JVSCapabilities *capabilities;
-  capabilities = getCapabilities();
-
-  if (player > capabilities->players)
+  if (player > capabilities.players)
   {
     printf("Error: That player does not exist.\n");
     return 0;
   }
 
-  if (switchNumber >= capabilities->switches)
+  if (switchNumber >= capabilities.switches)
   {
     printf("Error: That switch does not exist.\n");
     return 0;
@@ -104,11 +83,9 @@ int incrementCoin()
 
 int setAnalogue(int channel, double value)
 {
-  JVSCapabilities *capabilities = getCapabilities();
-
-  if (channel < capabilities->analogueInChannels)
+  if (channel < capabilities.analogueInChannels)
   {
-    state.analogueChannel[channel] = (int)((double)value * (double)capabilities->analogueMax);
+    state.analogueChannel[channel] = (int)((double)value * (double)capabilities.analogueMax);
     return 1;
   }
   return 0;
@@ -132,45 +109,7 @@ JVSState *getState()
   return &state;
 }
 
-void controlPrintStatus()
+JVSCapabilities *getCapabilities()
 {
-  /* Print Buttons */
-  for (int player = 0; player < getCapabilities()->players + 1; player++)
-  {
-    if (player == 0)
-    {
-      printf("System:\n\t");
-    }
-    else
-    {
-      printf("Player %d:\n\t", player);
-    }
-    for (int channel = 0; channel < (getCapabilities()->switches + 7) / 8; channel++)
-    {
-      for (int bit = 7; 0 <= bit; bit--)
-      {
-        printf("%d ", (getState()->inputSwitch[player][channel] >> bit) & 0x01);
-      }
-    }
-    printf("\n");
-  }
-
-  /* Print Analogue Count */
-  printf("Analogue:\n\t");
-  for (int channel = 0; channel < getCapabilities()->analogueInChannels; channel++)
-  {
-    printf("%d ", getState()->analogueChannel[channel]);
-  }
-  printf("\n");
-
-  /* Print Rotary Count */
-  printf("Rotary:\n\t");
-  for (int channel = 0; channel < getCapabilities()->rotaryChannels; channel++)
-  {
-    printf("%d ", getState()->rotaryChannel[channel]);
-  }
-  printf("\n");
-
-  /* Print Coin Count */
-  printf("Coin:\n\t%d\n", getState()->coinCount);
+  return &capabilities;
 }
