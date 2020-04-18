@@ -234,6 +234,11 @@ void *deviceThread(void *_args)
             {
               setSwitch(0, m.keyMapping[event.code].channel, event.value);
             }
+            else if (m.keyMapping[event.code].type == COIN)
+            {
+              if (event.value)
+                incrementCoin();
+            }
           }
         }
 

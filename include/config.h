@@ -20,6 +20,7 @@ typedef struct JVSConfig
     char defaultMapping[MAX_STRING_LENGTH];
     int defaultIO;
     int debugMode;
+    int atomiswaveFix;
 } JVSConfig;
 
 JVSStatus processConfig(char *filePath, JVSConfig *config);

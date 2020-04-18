@@ -322,11 +322,20 @@ JVSStatus processPacket(JVSPacket *inPacket, JVSPacket *outPacket)
 
           for (uint32_t i = 0; i < numberAnalogChannels; i++)
           {
-            uint16_t analog_data = state->analogueChannel[i] << rest_bits;
 
-            /* Data must be "left aligned" */
-            outPacket->data[outPacket->length + 0] = analog_data >> 8;
-            outPacket->data[outPacket->length + 1] = analog_data >> 0;
+            if (config.atomiswaveFix)
+            {
+              /* Data must be 8 bit right aligned for atomiswave maximum speed */
+              outPacket->data[outPacket->length + 0] = 0x00;
+              outPacket->data[outPacket->length + 1] = state->analogueChannel[i];
+            }
+            else
+            {
+              /* Data must be "left aligned" */
+              uint16_t analog_data = state->analogueChannel[i] << rest_bits;
+              outPacket->data[outPacket->length + 0] = analog_data >> 8;
+              outPacket->data[outPacket->length + 1] = analog_data;
+            }
 
             outPacket->length += 2;
           }

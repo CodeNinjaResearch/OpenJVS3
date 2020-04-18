@@ -9,7 +9,7 @@
 # The default game mapping
 DEFAULT_MAPPING driving-generic
 
-# The IO Board to emulate (0 type 3, 1 custom io, (yet to support: 2 namco io, 3 type 1 io))
+# The IO Board to emulate (0 type 3, 1 openjvs custom io, (yet to support: 2 namco io, 3 type 1 io))
 DEFAULT_IO 1
 
 # The path of the RS485 Converter
@@ -20,3 +20,6 @@ SYNC_TYPE 1
 
 # Output debug info
 DEBUG_MODE 0
+
+# Atomiswave Analogue Fix, Make sure the IO is 8-bits for this one (openjvs custom io is 8 bits)
+ATOMISWAVE_FIX 0
