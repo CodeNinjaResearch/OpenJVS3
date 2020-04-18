@@ -17,7 +17,7 @@ typedef struct
 
 typedef struct
 {
-    char name[4096];
+    char name[101];
     uint8_t players;
     uint8_t switches;
     uint8_t coins;
