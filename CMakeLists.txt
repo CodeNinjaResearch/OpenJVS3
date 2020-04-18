@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10)
 project(openjvs)
 
 project(openjvs
-        VERSION "3.1.0"
+        VERSION "3.1.1"
 		LANGUAGES "C"
         DESCRIPTION "An emulator for arcade JVS I/O boards"
         HOMEPAGE_URL "https://github.com/bobbydilley/OpenJVS3"
