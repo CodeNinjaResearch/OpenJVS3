@@ -319,14 +319,28 @@ void *wiiThread(void *_args)
         }
       }
 
-      double middlex = x0 + x1 / 2.0;
-      double middley = y0 + y1 / 2.0;
+      if (x0 != 1023 && x1 != 1023 && y0 != 1023 && y1 != 1023)
+      {
+        setSwitch(1, 7, 0);
+        int middlex = (int)((x0 + x1) / 2.0);
+        int middley = (int)((y0 + y1) / 2.0);
 
-      int valuex = middlex;
-      int valuey = 768 - middley;
-      setAnalogue(0, valuex);
-      setAnalogue(1, valuey);
-      printf("%d, %d\n", valuex, valuey);
+        int valuex = middlex;
+        int valuey = 1023 - middley;
+
+        unsigned char finalX = (unsigned char)(((double)valuex / 1023) * 255.0);
+        unsigned char finalY = (unsigned char)(((double)valuey / 1023) * 255.0);
+
+        //printf("%d,%d.\n", finalX, finalY);
+
+        setAnalogue(0, finalX);
+        setAnalogue(1, finalY);
+        //printf("%d, %d\n", valuex, valuey);
+      }
+      else
+      {
+        setSwitch(1, 7, 1);
+      }
     }
   }
 
