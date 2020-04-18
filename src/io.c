@@ -41,7 +41,7 @@ JVSStatus initIO(JVSCapabilities *initialCapabilities)
     state.rotaryChannel[rotaryChannels] = 0;
   }
 
-  state.coinCount = 2;
+  state.coinCount = 0;
 
   return OPEN_JVS_ERR_OK;
 }
