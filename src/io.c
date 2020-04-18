@@ -13,7 +13,7 @@ JVSStatus initIO(JVSCapabilities *initialCapabilities)
   if (initialCapabilities == NULL)
     return OPEN_JVS_ERR_NULL;
 
-  memcpy(&capabilities, &initialCapabilities, sizeof(JVSCapabilities));
+  memcpy(&capabilities, initialCapabilities, sizeof(JVSCapabilities));
 
   // Set the maximum analogue values
   if (capabilities.analogueInBits > 16)
