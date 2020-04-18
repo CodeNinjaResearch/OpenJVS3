@@ -1,6 +1,7 @@
 #include "sense.h"
 #include "jvs.h"
 #include "definitions.h"
+#include "config.h"
 
 static JVSSenseCircuit circuitToUse = SENSE_FLOAT;
 
@@ -19,7 +20,7 @@ JVSStatus SyncAlgorithmSet(JVSSenseCircuit circuitType)
 
 	default:
 	{
-		printf("**** Invalid Sync algorithm net: %u ****\n", circuitType);
+		printf("Warning: Invalid config for sync algorithm %u\n", circuitType);
 		retval = OPEN_JVS_ERR_INVALID_SYNC_CIRCUIT;
 	}
 	break;
@@ -40,7 +41,7 @@ int SyncPinInit(void)
 		retval = GPIOExport(SENSE_PIN);
 		if (retval != 0)
 		{
-			printf("Warning: Sync pin %d not available\n", SENSE_PIN);
+			printf("Warning: SENSE pin %d not available, change SENSE mode to 0 in the config file\n", SENSE_PIN);
 		}
 		break;
 
@@ -58,7 +59,8 @@ int SyncPinInit(void)
 			retval = GPIODirection(SENSE_PIN, OUT);
 			if (retval != 0)
 			{
-				printf("Warning: Sync pin %d could not be set to output\n", SENSE_PIN);
+				if (config.debugMode)
+					printf("Warning: Sync pin %d could not be set to output\n", SENSE_PIN);
 			}
 		}
 		break;
@@ -87,7 +89,8 @@ int SyncPinLow(bool pull_low)
 
 			if (error != 0)
 			{
-				printf("Warning: Failed to ground  pin %d\n", SENSE_PIN);
+				if (config.debugMode)
+					printf("Warning: Failed to ground  pin %d\n", SENSE_PIN);
 			}
 		}
 		break;
@@ -103,7 +106,8 @@ int SyncPinLow(bool pull_low)
 
 			if (error != 0)
 			{
-				printf("Warning: Failed to ground  pin %d\n", SENSE_PIN);
+				if (config.debugMode)
+					printf("Warning: Failed to ground  pin %d\n", SENSE_PIN);
 			}
 		}
 		break;
@@ -113,12 +117,14 @@ int SyncPinLow(bool pull_low)
 
 		default:
 		{
-			printf("Invalid Sync algorithm net: %u \n", circuitToUse);
+			if (config.debugMode)
+				printf("Invalid Sync algorithm net: %u \n", circuitToUse);
 		}
 		break;
 		}
 
-		debug("Floated sense pin");
+		if (config.debugMode)
+			debug("Floated sense pin");
 	}
 	else
 	{
@@ -130,7 +136,8 @@ int SyncPinLow(bool pull_low)
 
 			if (error != 0)
 			{
-				printf("Warning: Failed to pull high pin %d\n", SENSE_PIN);
+				if (config.debugMode)
+					printf("Warning: Failed to pull high pin %d\n", SENSE_PIN);
 			}
 		}
 		break;
@@ -141,7 +148,8 @@ int SyncPinLow(bool pull_low)
 
 			if (error != 0)
 			{
-				printf("Warning: Failed to float pin %d\n", SENSE_PIN);
+				if (config.debugMode)
+					printf("Warning: Failed to float pin %d\n", SENSE_PIN);
 			}
 		}
 		break;
@@ -151,12 +159,14 @@ int SyncPinLow(bool pull_low)
 
 		default:
 		{
-			printf("Invalid Sync algorithm net: %u \n", circuitToUse);
+			if (config.debugMode)
+				printf("Invalid Sync algorithm net: %u \n", circuitToUse);
 		}
 		break;
 		}
 
-		debug("Grounded sense pin");
+		if (config.debugMode)
+			debug("Grounded sense pin");
 	}
 	return error;
 }
@@ -263,13 +273,15 @@ int GPIOWrite(int pin, int value)
 	fd = open(path, O_WRONLY);
 	if (-1 == fd)
 	{
-		fprintf(stderr, "Failed to open gpio value for writing!\n");
+		if (config.debugMode)
+			fprintf(stderr, "Failed to open gpio value for writing!\n");
 		return (-1);
 	}
 
 	if (1 != write(fd, &s_values_str[LOW == value ? 0 : 1], 1))
 	{
-		fprintf(stderr, "Failed to write value!\n");
+		if (config.debugMode)
+			fprintf(stderr, "Failed to write value!\n");
 		return (-1);
 	}
 

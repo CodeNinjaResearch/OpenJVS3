@@ -23,6 +23,8 @@ typedef struct JVSConfig
     int atomiswaveFix;
 } JVSConfig;
 
+JVSConfig config;
+
 JVSStatus processConfig(char *filePath, JVSConfig *config);
 int processInMapFile(char *filePath, MappingIn *mappingIn);
 int processOutMapFile(char *filePath, MappingOut *mappingOut);

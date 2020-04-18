@@ -5,10 +5,7 @@
 #include "io.h"
 #include "version.h"
 
-JVSConfig config;
-
 int main(int argc, char **argv);
 void handleSignal(int sig);
-JVSCapabilities *getCapabilities();
 
 #endif // OPENJVS_H_

@@ -9,7 +9,8 @@
         "cstdbool": "c",
         "jvs.h": "c",
         "sense.h": "c",
-        "*.in": "cpp"
+        "*.in": "cpp",
+        "config.h": "c"
     },
     "editor.formatOnPaste": true,
     "editor.formatOnSave": true,
