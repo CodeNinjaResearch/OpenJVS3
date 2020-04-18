@@ -83,10 +83,13 @@ JVSStatus processConfig(char *filePath, JVSConfig *config)
                 /* Get IO Choice */
                 if (strcmp(token, "ATOMISWAVE_FIX") == 0)
                 {
-                    printf("Warning: Running ATOMISWAVE analogue fix, make sure the IO is 8-bit.\n");
                     token = strtok(NULL, " ");
                     trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
                     config->atomiswaveFix = atoi(token);
+                    if (config->atomiswaveFix)
+                    {
+                        printf("Warning: Running ATOMISWAVE analogue fix, make sure the IO is 8-bit.\n");
+                    }
                 }
             }
             fgets(buffer, 1024, fp);
