@@ -32,13 +32,14 @@ JVSStatus processConfig(char *filePath, JVSConfig *config)
         {
             if (buffer[0] != '#' && buffer[0] != 0 && strcmp(buffer, "") != 0)
             {
-                char *token = strtok(buffer, " ");
+                char *saveptr;
+                char *token = strtok_r(buffer, " ", &saveptr);
                 trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
 
                 /* Grab the Device Path */
                 if (strcmp(token, "DEVICE_PATH") == 0)
                 {
-                    token = strtok(NULL, " ");
+                    token = strtok_r(NULL, " ", &saveptr);
                     trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
                     strcpy(config->devicePath, token);
                 }
@@ -46,7 +47,7 @@ JVSStatus processConfig(char *filePath, JVSConfig *config)
                 /* Grab sync type */
                 if (strcmp(token, "SYNC_TYPE") == 0)
                 {
-                    token = strtok(NULL, " ");
+                    token = strtok_r(NULL, " ", &saveptr);
                     trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
                     config->syncType = atoi(token);
                 }
@@ -54,7 +55,7 @@ JVSStatus processConfig(char *filePath, JVSConfig *config)
                 /* Grab debug type */
                 if (strcmp(token, "DEBUG_MODE") == 0)
                 {
-                    token = strtok(NULL, " ");
+                    token = strtok_r(NULL, " ", &saveptr);
                     trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
                     config->debugMode = atoi(token);
                 }
@@ -98,7 +99,8 @@ int processInMapFile(char *filePath, MappingIn *mappingIn)
             str_ptr = fgets(buffer, 1024, fp);
             if ((str_ptr != NULL) && (buffer[0] != '#') && (buffer[0] != 0) && (buffer[0] != '\r') && (buffer[0] != '\n') && (strcmp(buffer, "") != 0))
             {
-                char *token = strtok(buffer, " ");
+                char *saveptr;
+                char *token = strtok_r(buffer, " ", &saveptr);
                 trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
 
                 InType type = KEY;
@@ -121,12 +123,12 @@ int processInMapFile(char *filePath, MappingIn *mappingIn)
                         type = ABS;
                         reverse = 1;
                     }
-                    token = strtok(NULL, " ");
+                    token = strtok_r(NULL, " ", &saveptr);
                     trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
 
                     int channel = atoi(token);
 
-                    token = strtok(NULL, " ");
+                    token = strtok_r(NULL, " ", &saveptr);
                     trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
 
                     Mode mode = modeStringToEnum(token);
@@ -174,7 +176,8 @@ int processOutMapFile(char *filePath, MappingOut *mappingIn)
             str_ptr = fgets(buffer, 1024, fp);
             if ((str_ptr != NULL) && (buffer[0] != '#') && (buffer[0] != 0) && (buffer[0] != '\r') && (buffer[0] != '\n') && (strcmp(buffer, "") != 0))
             {
-                char *token = strtok(buffer, " ");
+                char *saveptr;
+                char *token = strtok_r(buffer, " ", &saveptr);
                 InType type = KEY;
                 /* KEY <CHANNEL> <MODE> */
                 if (strcmp(token, "ROTARY") == 0 || strcmp(token, "ANALOGUE") == 0 || strcmp(token, "BUTTON") == 0 || strcmp(token, "SYSTEM") == 0)
@@ -188,17 +191,17 @@ int processOutMapFile(char *filePath, MappingOut *mappingIn)
                     if (strcmp(token, "ROTARY") == 0)
                         type = SYSTEM;
 
-                    token = strtok(NULL, " ");
+                    token = strtok_r(NULL, " ", &saveptr);
                     trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
                     int channel = atoi(token);
 
-                    token = strtok(NULL, " ");
+                    token = strtok_r(NULL, " ", &saveptr);
                     trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
                     Mode mode = modeStringToEnum(token);
 
                     /* Optional: Player Number*/
                     int player_number = 1;
-                    token = strtok(NULL, " ");
+                    token = strtok_r(NULL, " ", &saveptr);
 
                     if (token != NULL)
                     {

@@ -44,7 +44,7 @@ typedef struct
     int deviceFd;
 } Mapping;
 int processMaps(Mapping *m);
-MappingOut findMapping(Mode mode, Mapping *m);
+MappingOut *findMapping(Mode mode, Mapping *m);
 void printMapping(Mapping *m);
 void *deviceThread(void *_args);
 int startThread(char *eventPath, char *mappingPathIn, char *mappingPathOut);

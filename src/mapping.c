@@ -10,34 +10,43 @@ int processMaps(Mapping *m)
 {
   for (int i = 0; i < m->insideCount; i++)
   {
-    switch (m->insideMappings[i].type)
+    MappingOut *temp_outmap = NULL;
+    temp_outmap = findMapping(m->insideMappings[i].mode, m);
+    if (temp_outmap != NULL)
     {
-    case ABS:
-      m->analogueMapping[m->insideMappings[i].channel] = findMapping(m->insideMappings[i].mode, m);
-      m->analogueMapping[m->insideMappings[i].channel].min = m->insideMappings[i].min;
-      m->analogueMapping[m->insideMappings[i].channel].max = m->insideMappings[i].max;
-      m->analogueMapping[m->insideMappings[i].channel].reverse = m->insideMappings[i].reverse;
-      break;
-    case KEY:
-      m->keyMapping[m->insideMappings[i].channel] = findMapping(m->insideMappings[i].mode, m);
-      break;
-    default:
-      printf("Mapping.c: Unknown inside mapping case\n");
+      switch (m->insideMappings[i].type)
+      {
+      case ABS:
+        m->analogueMapping[m->insideMappings[i].channel] = *temp_outmap;
+        m->analogueMapping[m->insideMappings[i].channel].min = m->insideMappings[i].min;
+        m->analogueMapping[m->insideMappings[i].channel].max = m->insideMappings[i].max;
+        m->analogueMapping[m->insideMappings[i].channel].reverse = m->insideMappings[i].reverse;
+        break;
+      case KEY:
+        m->keyMapping[m->insideMappings[i].channel] = *temp_outmap;
+        break;
+      default:
+        printf("Mapping.c: Unknown inside mapping case\n");
+      }
+    }
+    else
+    {
+      printf("%s:%d: Could not find mapping for: %s \n", __FILE__, __LINE__, modeEnumToString(m->insideMappings[i].mode));
     }
   }
 }
 
-MappingOut findMapping(Mode mode, Mapping *m)
+MappingOut *findMapping(Mode mode, Mapping *m)
 {
   for (int i = 0; i < m->outsideCount; i++)
   {
     if (m->outsideMappings[i].mode == mode)
     {
-      return m->outsideMappings[i];
+      return &(m->outsideMappings[i]);
     }
   }
   printf("Warning: This outside map doesn't support %s\n", modeEnumToString(mode));
-  return m->outsideMappings[1];
+  return NULL;
 }
 
 void printMapping(Mapping *m)
@@ -102,12 +111,15 @@ void *deviceThread(void *_args)
 
   Mapping m;
 
+  memset(&m, 0, sizeof(m));
+
   m.insideCount = processInMapFile(mappingPathIn, m.insideMappings);
   m.outsideCount = processOutMapFile(mappingPathOut, m.outsideMappings);
 
-  if ((m.deviceFd = open(eventPath, O_RDONLY)) == -1)
+
+  if ((m.deviceFd = open(eventPath, O_RDONLY)) < 0)
   {
-    printf("mapping.c:initDevice(): Failed to open device file descriptor\n");
+    printf("mapping.c:initDevice(): Failed to open device file descriptor:%d \n", m.deviceFd);
     exit(-1);
   }
 
