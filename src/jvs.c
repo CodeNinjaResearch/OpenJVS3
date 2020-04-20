@@ -10,7 +10,11 @@ time_t lastByteTime;
 time_t currentByteTime;
 
 int deviceID = -1;
+#ifdef OFFLINE_MODE
+int debugEnabled = 1;
+#else
 int debugEnabled = 0;
+#endif
 
 Buffer read_buffer;
 
@@ -39,10 +43,10 @@ JVSStatus initJVS(char *devicePath, JVSCapabilities *capabilitiesSetup)
 
   /* Set Sync algorithm from settings */
 
-  SyncAlgorithmSet(SENSE_FLOAT);
+  //SyncAlgorithmSet(SENSE_FLOAT);
 
   // DEBUG
-  //SyncAlgorithmSet(SENSE_SWITCH);
+  SyncAlgorithmSet(SENSE_SWITCH);
 
   /* Init Sync Pin */
   SyncPinInit();
@@ -458,11 +462,14 @@ void test_buffer()
 
   //uint8_t cmd[] = {0xE0, 0x01, 0x0a, 0x20, 0x02, 0x2, 0x22, 0x8, 0x23, 0x08, 0x21, 0x02, 0xa7};
 
-  uint8_t cmd[] = {0xE0, 0x01, 0x0a, 0x20, 0x02, 0x2, 0x22, 0x8, 0x23, 0x08, 0x21, 0x02, 0xa7, 0xFF};
+  //uint8_t cmd[] = {0xE0, 0x01, 0x0a, 0x20, 0x02, 0x2, 0x22, 0x8, 0x23, 0x08, 0x21, 0x02, 0xa7, 0xFF};
 
   //uint8_t cmd[] = {0xE0, 0x01, 0x0D, 0x20, 0x02, 0x02, 0x22, 0x08, 0x21, 0x02, 0x32, 0x03, 0x00, 0x00, 0x00, 0xB4}; /* Multi Request*/
 
   //uint8_t cmd[] =  { 0xE0, 0xFF, 0x3, 0xef, 0x10, 0x01 }; /* Test CMD */
+
+  // Maze of Kings
+  uint8_t cmd[] = {0xE0, 0x01, 0x0D, 0x32, 0x01, 0x00, 0x20, 0x02, 0x02, 0x22, 0x08, 0x23, 0x08, 0x21, 0x02, 0xDD};
 
   for (uint32_t i = 0; i < sizeof(cmd); i++)
   {
@@ -492,7 +499,7 @@ JVSStatus jvs_do(void)
   {
     test_buffer();
   }
-  //once = true;
+  once = true;
 #endif
 
   packetOut.length = 0;
@@ -571,6 +578,12 @@ JVSStatus jvs_do(void)
   if (OPEN_JVS_ERR_OK == retval)
   {
     retval = encode_escape(&packetOut);
+
+    if (debugEnabled)
+    {
+      printf("encode_escape:%u response_len:%u ", retval, packetOut.length);
+      print_msg(&packetOut);
+    }
   }
 
   /* Send response */
@@ -831,6 +844,12 @@ JVSStatus encode_escape(JVSPacket *packet)
   if (OPEN_JVS_ERR_OK == retval)
   {
     len_new = packet->length;
+
+    /* Copy SYNC*/
+    for (i = j = 0; i < CMD_LEN_SYNC; i++, j++)
+    {
+      temp[j] = packet->data[i];
+    }
 
     for (i = j = CMD_LEN_SYNC; i < packet->length; i++, j++)
     {
