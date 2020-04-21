@@ -27,7 +27,7 @@ sudo openjvs
 
 ## Setup
 
-Settings files are located in `/usr/etc/openjvs/` which contains the global config file and both mapping from USB devices to OpenJVS and OpenJVS to Arcade Hardware.
+Settings files are located in `/etc/openjvs/` which contains the global config file and both mapping from USB devices to OpenJVS and OpenJVS to Arcade Hardware.
 
 ### Devices
 
