@@ -1,10 +1,12 @@
-#include "sync.h"
+#include "sense.h"
 #include "jvs.h"
 #include "definitions.h"
+#include "config.h"
+#include "debug.h"
 
-static JVSSenseCircuit circuitToUse = SENSE_FLOAT;
+JVSSenseCircuit circuitToUse = SENSE_FLOAT;
 
-JVSStatus SyncAlgorithmSet(JVSSenseCircuit circuitType)
+JVSStatus setSenseCircuit(JVSSenseCircuit circuitType)
 {
 	JVSStatus retval = OPEN_JVS_ERR_OK;
 
@@ -19,7 +21,7 @@ JVSStatus SyncAlgorithmSet(JVSSenseCircuit circuitType)
 
 	default:
 	{
-		printf("**** Invalid Sync algorithm net: %u ****\n", circuitType);
+		printf("Warning: Invalid config for sync algorithm %u\n", circuitType);
 		retval = OPEN_JVS_ERR_INVALID_SYNC_CIRCUIT;
 	}
 	break;
@@ -27,7 +29,7 @@ JVSStatus SyncAlgorithmSet(JVSSenseCircuit circuitType)
 	return retval;
 }
 
-int SyncPinInit(void)
+int initSense(void)
 {
 	int retval = 0;
 
@@ -37,10 +39,10 @@ int SyncPinInit(void)
 	case SENSE_SWITCH:
 	case SENSE_FLOAT:
 		/* GPIO SYNC PINS */
-		retval = GPIOExport(sync_pin);
+		retval = GPIOExport(SENSE_PIN);
 		if (retval != 0)
 		{
-			printf("Warning: Sync pin %d not available\n", sync_pin);
+			printf("Warning: SENSE pin %d not available, change SENSE mode to 0 in the config file\n", SENSE_PIN);
 		}
 		break;
 
@@ -55,10 +57,11 @@ int SyncPinInit(void)
 		{
 		case SENSE_SWITCH:
 		{
-			retval = GPIODirection(sync_pin, OUT);
+			retval = GPIODirection(SENSE_PIN, OUT);
 			if (retval != 0)
 			{
-				printf("Warning: Sync pin %d could not be set to output\n", sync_pin);
+				if (getConfig()->debugMode)
+					printf("Warning: Sync pin %d could not be set to output\n", SENSE_PIN);
 			}
 		}
 		break;
@@ -69,11 +72,11 @@ int SyncPinInit(void)
 		}
 	}
 
-	SyncPinLow(false);
+	setSensePin(false);
 	return retval;
 }
 
-int SyncPinLow(bool pull_low)
+int setSensePin(bool pull_low)
 {
 	int error = 0;
 
@@ -83,27 +86,29 @@ int SyncPinLow(bool pull_low)
 		{
 		case SENSE_SWITCH:
 		{
-			error = GPIOWrite(sync_pin, 1);
+			error = GPIOWrite(SENSE_PIN, 1);
 
 			if (error != 0)
 			{
-				printf("Warning: Failed to ground  pin %d\n", sync_pin);
+				if (getConfig()->debugMode)
+					printf("Warning: Failed to ground  pin %d\n", SENSE_PIN);
 			}
 		}
 		break;
 
 		case SENSE_FLOAT:
 		{
-			error = GPIODirection(sync_pin, OUT);
+			error = GPIODirection(SENSE_PIN, OUT);
 
 			if (error == 0)
 			{
-				error = GPIOWrite(sync_pin, 0);
+				error = GPIOWrite(SENSE_PIN, 0);
 			}
 
 			if (error != 0)
 			{
-				printf("Warning: Failed to ground  pin %d\n", sync_pin);
+				if (getConfig()->debugMode)
+					printf("Warning: Failed to ground  pin %d\n", SENSE_PIN);
 			}
 		}
 		break;
@@ -113,12 +118,14 @@ int SyncPinLow(bool pull_low)
 
 		default:
 		{
-			printf("Invalid Sync algorithm net: %u \n", circuitToUse);
+			if (getConfig()->debugMode)
+				printf("Invalid Sync algorithm net: %u \n", circuitToUse);
 		}
 		break;
 		}
 
-		debug("Floated sync pin");
+		if (getConfig()->debugMode)
+			debug(1, "Floated sense pin\n");
 	}
 	else
 	{
@@ -126,22 +133,24 @@ int SyncPinLow(bool pull_low)
 		{
 		case SENSE_SWITCH:
 		{
-			error = GPIOWrite(sync_pin, 0);
+			error = GPIOWrite(SENSE_PIN, 0);
 
 			if (error != 0)
 			{
-				printf("Warning: Failed to pull high pin %d\n", sync_pin);
+				if (getConfig()->debugMode)
+					printf("Warning: Failed to pull high pin %d\n", SENSE_PIN);
 			}
 		}
 		break;
 
 		case SENSE_FLOAT:
 		{
-			error = GPIODirection(sync_pin, IN);
+			error = GPIODirection(SENSE_PIN, IN);
 
 			if (error != 0)
 			{
-				printf("Warning: Failed to float pin %d\n", sync_pin);
+				if (getConfig()->debugMode)
+					printf("Warning: Failed to float pin %d\n", SENSE_PIN);
 			}
 		}
 		break;
@@ -151,12 +160,14 @@ int SyncPinLow(bool pull_low)
 
 		default:
 		{
-			printf("Invalid Sync algorithm net: %u \n", circuitToUse);
+			if (getConfig()->debugMode)
+				printf("Invalid Sync algorithm net: %u \n", circuitToUse);
 		}
 		break;
 		}
 
-		debug("Grounded sync pin");
+		if (getConfig()->debugMode)
+			debug(1, "Grounded sense pin\n");
 	}
 	return error;
 }
@@ -263,13 +274,15 @@ int GPIOWrite(int pin, int value)
 	fd = open(path, O_WRONLY);
 	if (-1 == fd)
 	{
-		fprintf(stderr, "Failed to open gpio value for writing!\n");
+		if (getConfig()->debugMode)
+			fprintf(stderr, "Failed to open gpio value for writing!\n");
 		return (-1);
 	}
 
 	if (1 != write(fd, &s_values_str[LOW == value ? 0 : 1], 1))
 	{
-		fprintf(stderr, "Failed to write value!\n");
+		if (getConfig()->debugMode)
+			fprintf(stderr, "Failed to write value!\n");
 		return (-1);
 	}
 

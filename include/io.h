@@ -17,6 +17,7 @@ typedef struct
 
 typedef struct
 {
+    char name[101];
     uint8_t players;
     uint8_t switches;
     uint8_t coins;
@@ -36,52 +37,51 @@ typedef struct
     uint8_t displayOutColumns;
     uint8_t displayOutEncodings;
     uint8_t backup;
-    char *name;
 
     uint8_t jvsCommandVersion;
-    uint8_t jvs_version;
-    uint8_t jvs_com_version;
+    uint8_t jvsVersion;
+    uint8_t jvsComVersion;
 
     uint16_t analogueMax;
 
 } JVSCapabilities;
 
-static const JVSCapabilities jvs_io_lindbergh =
+static JVSCapabilities SegaType3IO =
     {
         .name = "SEGA CORPORATION;I/O BD JVS;837-14572;Ver1.00;2005/10",
         .players = 2,
         .switches = 0xE,
         .jvsCommandVersion = 0x13,
-        .jvs_version = 0x20,
-        .jvs_com_version = 0x10,
+        .jvsVersion = 0x20,
+        .jvsComVersion = 0x10,
         .analogueInChannels = 8,
         .analogueInBits = 10,
-        .rotaryChannels = 8, // is this right?
+        .rotaryChannels = 8,
         .coins = 2,
         .generalPurposeOutputs = 20,
 };
 
-static const JVSCapabilities jvs_io_naomi =
+static JVSCapabilities OpenJVSCustomIO =
     {
         .name = "OpenJVS Emulator;I/O BD JVS;837-13551;Ver1.00;98/10",
         .players = 2,
-        .switches = 16, // @Bobby: Why 16?
+        .switches = 16,
         .jvsCommandVersion = 0x10,
-        .jvs_version = 0x11,
-        .jvs_com_version = 0x10,
+        .jvsVersion = 0x11,
+        .jvsComVersion = 0x10,
         .analogueInChannels = 8,
         .analogueInBits = 8,
-        .rotaryChannels = 8, // is this right?
+        .rotaryChannels = 8,
         .coins = 2,
         .generalPurposeOutputs = 6,
 };
 
-JVSStatus initIO(/* JVSCapabilities *capabilitiesSetup*/);
+JVSStatus initIO(JVSCapabilities *capabilitiesSetup);
 int setSwitch(int player, int switchNumber, int value);
 int incrementCoin();
 int setAnalogue(int channel, double value);
 int setRotary(int channel, double value);
-void controlPrintStatus();
 JVSState *getState();
+JVSCapabilities *getCapabilities();
 
 #endif // DEVICE_H_

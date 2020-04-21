@@ -8,9 +8,21 @@
         "stdbool.h": "c",
         "cstdbool": "c",
         "jvs.h": "c",
-        "sync.h": "c"
+        "sense.h": "c",
+        "*.in": "cpp",
+        "config.h": "c",
+        "bit": "cpp",
+        "array": "cpp",
+        "deque": "cpp",
+        "map": "cpp",
+        "*.tcc": "cpp",
+        "string": "cpp",
+        "unordered_map": "cpp",
+        "vector": "cpp"
     },
     "editor.formatOnPaste": true,
     "editor.formatOnSave": true,
-    "editor.formatOnType": true
+    "editor.formatOnType": true,
+    "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools",
+    "cmake.configureOnOpen": true
 }

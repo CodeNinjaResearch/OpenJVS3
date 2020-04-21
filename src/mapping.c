@@ -3,6 +3,9 @@
 #include <stdbool.h>
 #include <sys/select.h>
 #include "mapping.h"
+#include "jvs.h"
+
+void *wiiThread(void *_args);
 
 #define test_bit(bit, array) (array[bit / 8] & (1 << (bit % 8)))
 
@@ -10,34 +13,42 @@ int processMaps(Mapping *m)
 {
   for (int i = 0; i < m->insideCount; i++)
   {
-    switch (m->insideMappings[i].type)
+    MappingOut *tempOutsideMapping = NULL;
+    tempOutsideMapping = findMapping(m->insideMappings[i].mode, m);
+    if (tempOutsideMapping != NULL)
     {
-    case ABS:
-      m->analogueMapping[m->insideMappings[i].channel] = findMapping(m->insideMappings[i].mode, m);
-      m->analogueMapping[m->insideMappings[i].channel].min = m->insideMappings[i].min;
-      m->analogueMapping[m->insideMappings[i].channel].max = m->insideMappings[i].max;
-      m->analogueMapping[m->insideMappings[i].channel].reverse = m->insideMappings[i].reverse;
-      break;
-    case KEY:
-      m->keyMapping[m->insideMappings[i].channel] = findMapping(m->insideMappings[i].mode, m);
-      break;
-    default:
-      printf("Mapping.c: Unknown inside mapping case\n");
+      switch (m->insideMappings[i].type)
+      {
+      case ABS:
+        m->analogueMapping[m->insideMappings[i].channel] = *tempOutsideMapping;
+        m->analogueMapping[m->insideMappings[i].channel].min = m->insideMappings[i].min;
+        m->analogueMapping[m->insideMappings[i].channel].max = m->insideMappings[i].max;
+        m->analogueMapping[m->insideMappings[i].channel].reverse = m->insideMappings[i].reverse;
+        break;
+      case KEY:
+        m->keyMapping[m->insideMappings[i].channel] = *tempOutsideMapping;
+        break;
+      default:
+        printf("Warning: Unknown inside mapping case, use ABS or KEY.\n");
+      }
+    }
+    else
+    {
+      printf("Warning: This outside map does not support: %s \n", modeEnumToString(m->insideMappings[i].mode));
     }
   }
 }
 
-MappingOut findMapping(Mode mode, Mapping *m)
+MappingOut *findMapping(Mode mode, Mapping *m)
 {
   for (int i = 0; i < m->outsideCount; i++)
   {
     if (m->outsideMappings[i].mode == mode)
     {
-      return m->outsideMappings[i];
+      return &(m->outsideMappings[i]);
     }
   }
-  printf("Warning: This outside map doesn't support %s\n", modeEnumToString(mode));
-  return m->outsideMappings[1];
+  return NULL;
 }
 
 void printMapping(Mapping *m)
@@ -74,6 +85,14 @@ int startThread(char *eventPath, char *mappingPathIn, char *mappingPathOut)
   threadCount++;
 }
 
+int startWiiThread(char *eventPath, char *mappingPathIn, char *mappingPathOut)
+{
+  struct MappingThreadArguments *args = malloc(sizeof(struct MappingThreadArguments));
+  strcpy(args->eventPath, eventPath);
+  pthread_create(&threadID[threadCount], NULL, wiiThread, args);
+  threadCount++;
+}
+
 void stopThreads()
 {
   printf("Stopping threads\n");
@@ -87,7 +106,7 @@ void stopThreads()
 void *deviceThread(void *_args)
 {
   /* Device threads run with standard linux prio */
-  set_realtime_priority(false);
+  setRealtimePriority(false);
 
   struct MappingThreadArguments *args = (struct MappingThreadArguments *)_args;
   char eventPath[4096];
@@ -102,12 +121,14 @@ void *deviceThread(void *_args)
 
   Mapping m;
 
+  memset(&m, 0, sizeof(m));
+
   m.insideCount = processInMapFile(mappingPathIn, m.insideMappings);
   m.outsideCount = processOutMapFile(mappingPathOut, m.outsideMappings);
 
-  if ((m.deviceFd = open(eventPath, O_RDONLY)) == -1)
+  if ((m.deviceFd = open(eventPath, O_RDONLY)) < 0)
   {
-    printf("mapping.c:initDevice(): Failed to open device file descriptor\n");
+    printf("mapping.c:initDevice(): Failed to open device file descriptor:%d \n", m.deviceFd);
     exit(-1);
   }
 
@@ -180,6 +201,7 @@ void *deviceThread(void *_args)
       switch (event.type)
       {
       case EV_ABS:
+
         if (m.analogueMapping[event.code].type != NONE)
         {
           float x = event.value;
@@ -219,6 +241,11 @@ void *deviceThread(void *_args)
             {
               setSwitch(0, m.keyMapping[event.code].channel, event.value);
             }
+            else if (m.keyMapping[event.code].type == COIN)
+            {
+              if (event.value)
+                incrementCoin();
+            }
           }
         }
 
@@ -226,6 +253,101 @@ void *deviceThread(void *_args)
       }
 
       // controlPrintStatus();
+    }
+  }
+
+  printf("Closing\n");
+  close(m.deviceFd);
+
+  return 0;
+}
+
+void *wiiThread(void *_args)
+{
+  /* Device threads run with standard linux prio */
+  setRealtimePriority(false);
+  struct MappingThreadArguments *args = (struct MappingThreadArguments *)_args;
+  char eventPath[4096];
+  strcpy(eventPath, args->eventPath);
+  free(args);
+
+  Mapping m;
+
+  if ((m.deviceFd = open(eventPath, O_RDONLY)) == -1)
+  {
+    printf("mapping.c:initDevice(): Failed to open device file descriptor\n");
+    exit(-1);
+  }
+  struct input_event event;
+
+  int flags = fcntl(m.deviceFd, F_GETFL, 0);
+  fcntl(m.deviceFd, F_SETFL, flags | O_NONBLOCK);
+
+  int axisIndex;
+  uint8_t absoluteBitmask[ABS_MAX / 8 + 1];
+  float percentageDeadzone;
+  struct input_absinfo absoluteFeatures;
+
+  memset(absoluteBitmask, 0, sizeof(absoluteBitmask));
+  if (ioctl(m.deviceFd, EVIOCGBIT(EV_ABS, sizeof(absoluteBitmask)), absoluteBitmask) < 0)
+  {
+    perror("evdev ioctl");
+  }
+
+  fd_set file_descriptor;
+  struct timeval tv;
+
+  int x0 = 0;
+  int y0 = 0;
+  int x1 = 0;
+  int y1 = 0;
+
+  while (threadsRunning)
+  {
+    if (read(m.deviceFd, &event, sizeof event) > 0)
+    {
+
+      if (event.type == EV_ABS)
+      {
+        switch (event.code)
+        {
+        case 16:
+          x0 = event.value;
+          break;
+        case 17:
+          y0 = event.value;
+          break;
+        case 18:
+          x1 = event.value;
+          break;
+        case 19:
+          y1 = event.value;
+          break;
+        }
+      }
+
+      if (x0 != 1023 && x1 != 1023 && y0 != 1023 && y1 != 1023)
+      {
+        setSwitch(1, 7, 0);
+        int middlex = (int)((x0 + x1) / 2.0);
+        int middley = (int)((y0 + y1) / 2.0);
+
+        int valuex = middlex;
+        int valuey = 1023 - middley;
+
+        unsigned char finalX = (unsigned char)(((double)valuex / 1023) * 255.0);
+        unsigned char finalY = (unsigned char)(((double)valuey / 1023) * 255.0);
+
+        //printf("%d,%d.\n", finalX, finalY);
+
+        setAnalogue(0, finalX);
+        setAnalogue(1, finalY);
+        //printf("%d, %d\n", valuex, valuey);
+      }
+      else
+      {
+        setSwitch(1, 7, 1);
+      }
     }
   }
 

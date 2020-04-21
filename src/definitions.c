@@ -4,7 +4,10 @@ Mode modeStringToEnum(const char *str)
 {
   for (int j = 0; j < sizeof(modeConversion) / sizeof(modeConversion[0]); ++j)
     if (!strcmp(str, modeConversion[j].str))
+    {
       return modeConversion[j].val;
+    }
+
   printf("mapping.c:modeStringToEnum: no such enum for string (%s)\n", str);
   return 0;
 }
@@ -18,7 +21,7 @@ const char *modeEnumToString(Mode mode)
   return 0;
 }
 
-int set_realtime_priority(bool realtime)
+int setRealtimePriority(bool realtime)
 {
   int ret = 0;
   int policy = 0;

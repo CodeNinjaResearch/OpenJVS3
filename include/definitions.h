@@ -78,7 +78,8 @@ typedef enum
     SYSTEM_6,
     SYSTEM_7,
     SYSTEM_8,
-    COIN
+    COIN_1,
+    COIN_2,
 } Mode;
 
 static const struct
@@ -123,12 +124,13 @@ static const struct
     {SYSTEM_7, "SYSTEM_7"},
     {SYSTEM_8, "SYSTEM_8"},
     {START, "START"},
-    {COIN, "COIN"}};
+    {COIN_1, "COIN_1"},
+    {COIN_2, "COIN_2"}};
 
 typedef enum
 {
     KEY,
-    ABS,
+    ABS
 } InType;
 
 typedef enum
@@ -138,7 +140,8 @@ typedef enum
     BUTTON,
     ANALOGUE,
     ROTARY,
-    GUN
+    GUN,
+    COIN,
 } OutType;
 
 typedef struct
@@ -164,6 +167,6 @@ typedef struct
 
 Mode modeStringToEnum(const char *str);
 const char *modeEnumToString(Mode mode);
-int set_realtime_priority(bool realtime);
+int setRealtimePriority(bool realtime);
 
 #endif // DEFINITIONS_H_

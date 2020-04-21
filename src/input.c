@@ -10,6 +10,7 @@ int initInput()
         printf("Error: Failed to scan inputs correctly\n");
         return 0;
     }
+    usleep(100);
     connectDevices();
     return 1;
 }
@@ -31,15 +32,25 @@ void connectDevices()
 {
     for (int i = 0; i < deviceCount; i++)
     {
-        char temp[4096] = DEFAULT_DEVICE_MAP;
+        usleep(100);
+        char temp[4096] = DEFAULT_DEVICE_MAP_PATH;
         strcat(temp, devices[i].name);
         if (access(temp, F_OK) != -1)
         {
-            printf("Supported Device Found: %s\n", temp);
-            // DEBUG only
-            //startThread(devices[i].path, temp, "docs/maps/arcade/driving-race_tv");
-            //startThread(devices[i].path, temp, "docs/maps/arcade/driving-hummer");
-            startThread(devices[i].path, temp, "docs/maps/arcade/driving-generic");
+            printf("Input: %s\n", devices[i].name);
+
+            char mappingName[4096];
+            strcpy(mappingName, DEFAULT_ARCADE_MAP_PATH);
+            strcat(mappingName, getConfig()->defaultMapping);
+
+            if (strcmp(devices[i].name, "nintendo-wii-remote-ir") == 0)
+            {
+                startWiiThread(devices[i].path, temp, mappingName);
+            }
+            else
+            {
+                startThread(devices[i].path, temp, mappingName);
+            }
         }
     }
 }

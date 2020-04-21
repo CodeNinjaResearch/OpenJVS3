@@ -1,5 +1,5 @@
-#ifndef SYNC_H_
-#define SYNC_H_
+#ifndef SENSE_H_
+#define SENSE_H_
 
 #include <stdbool.h>
 #include <sys/stat.h>
@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include "definitions.h"
 
-#define sync_pin 12
+#define SENSE_PIN 12
 
 #define IN 0
 #define OUT 1
@@ -26,9 +26,9 @@ typedef enum
     SENSE_NONE,
 } JVSSenseCircuit;
 
-int SyncPinInit(void);
-int SyncPinLow(bool pull_low);
-JVSStatus SyncAlgorithmSet(JVSSenseCircuit circuitType);
+int initSense(void);
+int setSensePin(bool pull_low);
+JVSStatus setSenseCircuit(JVSSenseCircuit circuitType);
 
 int GPIOUnexport(int pin);
 int GPIOExport(int pin);
@@ -39,4 +39,4 @@ int GPIOWrite(int pin, int value);
 void set_debug_pin(uint8_t b);
 void init_debug_pin(void);
 
-#endif // SYNC_H_
+#endif // SENSE_H_

@@ -3,6 +3,8 @@
 
 #include "config.h"
 
+JVSConfig config;
+
 void trimToken(char *str, int maxlen)
 {
     int length = strnlen(str, maxlen);
@@ -18,10 +20,20 @@ void trimToken(char *str, int maxlen)
     }
 }
 
-JVSStatus processConfig(char *filePath, JVSConfig *config)
+JVSConfig *getConfig()
+{
+    return &config;
+}
+
+JVSStatus processConfig(char *filePath)
 {
     // Setup default values
-    strcpy(config->devicePath, "/dev/ttyUSB0");
+    strcpy(config.devicePath, "/dev/ttyUSB0");
+    strcpy(config.defaultMapping, "driving-generic");
+    config.atomiswaveFix = 0;
+    config.debugMode = 0;
+    config.defaultIO = 1;
+    config.senseType = 1;
 
     FILE *fp;
     char buffer[1024];
@@ -32,31 +44,60 @@ JVSStatus processConfig(char *filePath, JVSConfig *config)
         {
             if (buffer[0] != '#' && buffer[0] != 0 && strcmp(buffer, "") != 0)
             {
-                char *token = strtok(buffer, " ");
+                char *saveptr;
+                char *token = strtok_r(buffer, " ", &saveptr);
                 trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
 
                 /* Grab the Device Path */
                 if (strcmp(token, "DEVICE_PATH") == 0)
                 {
-                    token = strtok(NULL, " ");
+                    token = strtok_r(NULL, " ", &saveptr);
                     trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
-                    strcpy(config->devicePath, token);
+                    strcpy(config.devicePath, token);
                 }
 
-                /* Grab sync type */
-                if (strcmp(token, "SYNC_TYPE") == 0)
+                /* Grab sense type */
+                if (strcmp(token, "SENSE_TYPE") == 0)
                 {
-                    token = strtok(NULL, " ");
+                    token = strtok_r(NULL, " ", &saveptr);
                     trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
-                    config->syncType = atoi(token);
+                    config.senseType = atoi(token);
                 }
 
                 /* Grab debug type */
                 if (strcmp(token, "DEBUG_MODE") == 0)
                 {
-                    token = strtok(NULL, " ");
+                    token = strtok_r(NULL, " ", &saveptr);
                     trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
-                    config->debugMode = atoi(token);
+                    config.debugMode = atoi(token);
+                }
+
+                /* Grab default mapping */
+                if (strcmp(token, "DEFAULT_MAPPING") == 0)
+                {
+                    token = strtok_r(NULL, " ", &saveptr);
+                    trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
+                    strcpy(config.defaultMapping, token);
+                }
+
+                /* Get IO Choice */
+                if (strcmp(token, "DEFAULT_IO") == 0)
+                {
+                    token = strtok_r(NULL, " ", &saveptr);
+                    trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
+                    config.defaultIO = atoi(token);
+                }
+
+                /* Get IO Choice */
+                if (strcmp(token, "ATOMISWAVE_FIX") == 0)
+                {
+                    token = strtok_r(NULL, " ", &saveptr);
+                    trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
+                    config.atomiswaveFix = atoi(token);
+                    if (config.atomiswaveFix)
+                    {
+                        printf("Warning: Running ATOMISWAVE analogue fix, make sure the IO is 8-bit.\n");
+                    }
                 }
             }
             fgets(buffer, 1024, fp);
@@ -98,7 +139,8 @@ int processInMapFile(char *filePath, MappingIn *mappingIn)
             str_ptr = fgets(buffer, 1024, fp);
             if ((str_ptr != NULL) && (buffer[0] != '#') && (buffer[0] != 0) && (buffer[0] != '\r') && (buffer[0] != '\n') && (strcmp(buffer, "") != 0))
             {
-                char *token = strtok(buffer, " ");
+                char *saveptr;
+                char *token = strtok_r(buffer, " ", &saveptr);
                 trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
 
                 InType type = KEY;
@@ -121,12 +163,12 @@ int processInMapFile(char *filePath, MappingIn *mappingIn)
                         type = ABS;
                         reverse = 1;
                     }
-                    token = strtok(NULL, " ");
+                    token = strtok_r(NULL, " ", &saveptr);
                     trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
 
                     int channel = atoi(token);
 
-                    token = strtok(NULL, " ");
+                    token = strtok_r(NULL, " ", &saveptr);
                     trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
 
                     Mode mode = modeStringToEnum(token);
@@ -174,10 +216,11 @@ int processOutMapFile(char *filePath, MappingOut *mappingIn)
             str_ptr = fgets(buffer, 1024, fp);
             if ((str_ptr != NULL) && (buffer[0] != '#') && (buffer[0] != 0) && (buffer[0] != '\r') && (buffer[0] != '\n') && (strcmp(buffer, "") != 0))
             {
-                char *token = strtok(buffer, " ");
+                char *saveptr;
+                char *token = strtok_r(buffer, " ", &saveptr);
                 InType type = KEY;
                 /* KEY <CHANNEL> <MODE> */
-                if (strcmp(token, "ROTARY") == 0 || strcmp(token, "ANALOGUE") == 0 || strcmp(token, "BUTTON") == 0 || strcmp(token, "SYSTEM") == 0)
+                if (strcmp(token, "ROTARY") == 0 || strcmp(token, "ANALOGUE") == 0 || strcmp(token, "BUTTON") == 0 || strcmp(token, "SYSTEM") == 0 || strcmp(token, "COIN") == 0)
                 {
                     if (strcmp(token, "ANALOGUE") == 0)
                         type = ANALOGUE;
@@ -187,18 +230,20 @@ int processOutMapFile(char *filePath, MappingOut *mappingIn)
                         type = SYSTEM;
                     if (strcmp(token, "ROTARY") == 0)
                         type = SYSTEM;
+                    if (strcmp(token, "COIN") == 0)
+                        type = COIN;
 
-                    token = strtok(NULL, " ");
+                    token = strtok_r(NULL, " ", &saveptr);
                     trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
                     int channel = atoi(token);
 
-                    token = strtok(NULL, " ");
+                    token = strtok_r(NULL, " ", &saveptr);
                     trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
                     Mode mode = modeStringToEnum(token);
 
                     /* Optional: Player Number*/
                     int player_number = 1;
-                    token = strtok(NULL, " ");
+                    token = strtok_r(NULL, " ", &saveptr);
 
                     if (token != NULL)
                     {

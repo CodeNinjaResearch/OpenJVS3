@@ -168,14 +168,14 @@ int setSerialLowLatency(int fd)
 
   if (ioctl(fd, TIOCGSERIAL, &serial_settings) < 0)
   {
-    printf("Serial Error - Failed to read serial settings for low latency mode");
+    printf("Error: Failed to read serial settings for low latency mode\n");
     return 0;
   }
 
   serial_settings.flags |= ASYNC_LOW_LATENCY;
   if (ioctl(fd, TIOCSSERIAL, &serial_settings) < 0)
   {
-    printf("Serial Error - Failed to write serial settings for low latency mode");
+    printf("Error: Failed to write serial settings for low latency mode\n");
     return 0;
   }
   return 1;

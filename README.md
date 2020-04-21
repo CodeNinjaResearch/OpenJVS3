@@ -11,23 +11,23 @@ To install OpenJVS3 follow the instructions below to install the required packag
 sudo apt install git build-essential cmake
 git clone https://github.com/bobbydilley/OpenJVS3
 cd OpenJVS3
-mkdir build && cd build
-cmake ..
-make
-cd ..
+./build.sh
+dpkg --install build/*.deb
 ```
+
+Please note when installing the package again, any settings files you have modified will be overwritten. Map/Device files that you have __added__ your self will remain safe.
 
 ## Usage
 
-OpenJVS3 can be run from the command line by typing the executable name and it will start emulating the specific IO defined in `openjvs.c`.
+OpenJVS3 can be run from the command line by typing the executable name.
 
 ```
-sudo ./build/openjvs
+sudo openjvs
 ```
 
 ## Setup
 
-Settings files are located in `/docs/maps/` and contain both mapping from USB devices to OpenJVS and OpenJVS to Arcade Hardware.
+Settings files are located in `/etc/openjvs/` which contains the global config file and both mapping from USB devices to OpenJVS and OpenJVS to Arcade Hardware.
 
 ### Devices
 
@@ -39,26 +39,3 @@ Below are the list of commands they take:
 ### Arcade
 
 - BUTTON 1 BUTTON_1
-
-### Create an Installation Package
-
-To create a debian package that can be installed follow these instructions from the root of the project:
-
-```
-mkdir -p build && cd build
-cmake ..
-cmake --build .
-cpack
-```
-
-This will make a .deb file which can be installed like this:
-
-```
-dpkg --install <file_name>.deb
-```
-
-and removed like this:
-
-```
-dpkg --remove openjvs
-```

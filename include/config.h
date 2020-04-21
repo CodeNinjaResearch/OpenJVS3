@@ -7,23 +7,25 @@
 
 #include "definitions.h"
 
-#define DEFAULT_LOCATION "/etc/openjvs"
-#define DEFAULT_GLOBAL_CONFIG "/global_config"
-#define DEFAULT_DEFAULT_CONFIG "/maps/default_config"
-#define DEFAULT_DEVICE_MAP "docs/maps/device/"
+#define DEFAULT_GLOBAL_CONFIG_PATH "/etc/openjvs/global_config"
+#define DEFAULT_DEVICE_MAP_PATH "/etc/openjvs/maps/device/"
+#define DEFAULT_ARCADE_MAP_PATH "/etc/openjvs/maps/arcade/"
 
 #define MAX_STRING_LENGTH 1024
 
 typedef struct JVSConfig
 {
     char devicePath[MAX_STRING_LENGTH];
-    int syncType;
+    int senseType;
     char defaultMapping[MAX_STRING_LENGTH];
-    char defaultIO[MAX_STRING_LENGTH];
+    int defaultIO;
     int debugMode;
+    int atomiswaveFix;
 } JVSConfig;
 
-JVSStatus processConfig(char *filePath, JVSConfig *config);
+JVSConfig *getConfig();
+
+JVSStatus processConfig(char *filePath);
 int processInMapFile(char *filePath, MappingIn *mappingIn);
 int processOutMapFile(char *filePath, MappingOut *mappingOut);
 
