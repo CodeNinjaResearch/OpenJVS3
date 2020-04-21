@@ -34,8 +34,6 @@ int disconnectJVS();
 int writeCapabilities(JVSPacket *outputPacket, JVSCapabilities *capabilities);
 int readPacket(JVSPacket *packet);
 int writePacket(JVSPacket *packet);
-JVSStatus processPacket2(JVSPacket *inPacket, JVSPacket *outPacket);
-void debug(char *string);
 
 JVSStatus jvs_do(void);
 

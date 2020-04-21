@@ -124,7 +124,7 @@ int setSensePin(bool pull_low)
 		}
 
 		if (getConfig()->debugMode)
-			debug("Floated sense pin");
+			debug(1, "Floated sense pin\n");
 	}
 	else
 	{
@@ -166,7 +166,7 @@ int setSensePin(bool pull_low)
 		}
 
 		if (getConfig()->debugMode)
-			debug("Grounded sense pin");
+			debug(1, "Grounded sense pin\n");
 	}
 	return error;
 }
