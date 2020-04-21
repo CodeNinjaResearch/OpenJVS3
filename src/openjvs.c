@@ -8,16 +8,8 @@
 #include "jvs.h"
 #include "input.h"
 
-int running = 1;
-
-Buffer readBuffer;
-/* Setup the IO we are trying to emulate */
-JVSCapabilities capabilities;
-
 int main(int argc, char **argv)
 {
-  JVSStatus retval = OPEN_JVS_ERR_OK;
-
   signal(SIGINT, handleSignal);
 
   printf("OpenJVS (Version %s.%s.%s)\n\n", PROJECT_VER_MAJOR, PROJECT_VER_MINOR, PROJECT_VER_PATCH);
@@ -25,7 +17,7 @@ int main(int argc, char **argv)
   /* Get the config */
   if (processConfig(DEFAULT_GLOBAL_CONFIG_PATH, &config) != OPEN_JVS_ERR_OK)
   {
-    printf("Map file didn't work panic!\n");
+    printf("Warning: Could not read the config, using default config instead.\n");
     strcpy(config.devicePath, "/dev/ttyUSB0");
   }
 
@@ -53,21 +45,26 @@ int main(int argc, char **argv)
   initIO(capabilities);
 
   /* Setup the JVS Emulator with the RS485 path and capabilities */
-  retval = initJVS(config.devicePath);
-  if (OPEN_JVS_ERR_OK != retval)
+  JVSStatus initJVSStatus = initJVS(config.devicePath);
+  if (initJVSStatus != OPEN_JVS_ERR_OK)
   {
-    printf("initJVS() returned:%d \n", retval);
-    return 1;
+    printf("Error: Failed to initialise JVS. Error code %d\n", initJVSStatus);
+    return EXIT_FAILURE;
   }
 
   /* Try to increase prio of JVS communication thread */
-  set_realtime_priority(true);
+  if (setRealtimePriority(true) != 0)
+  {
+    printf("Warning: Failed to set realtime priority\n");
+  }
 
   /* Process packets forever */
-  printf("\nRunning...\n");
+
+  int running = 1;
+  JVSStatus status;
   while (running)
   {
-    retval = jvs_do();
+    status = jvs_do();
 
 #ifdef OFFLINE_MODE
     // Give time for debug prints of task started later
@@ -76,7 +73,7 @@ int main(int argc, char **argv)
     //return 0;
 #endif
 
-    switch (retval)
+    switch (status)
     {
     /* Status that are normal */
     case OPEN_JVS_ERR_OK:
@@ -85,24 +82,9 @@ int main(int argc, char **argv)
     case OPEN_JVS_ERR_SYNC_BYTE:
     case OPEN_JVS_NO_RESPONSE:
     case OPEN_JVS_ERR_WAIT_BYTES:
-      // todo: Checksum error can occur when arcade device is rebooting therefore these are non critical but for testing I want to see all error that are not normal
-      //case OPEN_JVS_ERR_CHECKSUM:
-      {
-        // if (debugEnabled)
-        // {
-        //   printf("jvs main loop returned:%d \n", retval);
-        // }
-      }
       break;
-
-    /* Errors */
     default:
-    {
-      printf("Warning: Main loop returned %d\n", retval);
-
-      // todo: uncomment later once all non-critical errors defined
-      //running = false;
-    }
+      printf("Warning: The JVS programed returned the error %d\n", status);
     }
   }
 
@@ -110,17 +92,16 @@ int main(int argc, char **argv)
   if (!disconnectJVS())
   {
     printf("Error: Couldn't disconnect from serial\n");
-    return 1;
+    return EXIT_FAILURE;
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 void handleSignal(int signal)
 {
   if (signal == 2)
   {
-    running = false;
     printf("Warning: Shutting down\n");
     exit(EXIT_SUCCESS);
   }

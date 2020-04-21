@@ -68,7 +68,7 @@ JVSStatus processConfig(char *filePath, JVSConfig *config)
                 /* Grab default mapping */
                 if (strcmp(token, "DEFAULT_MAPPING") == 0)
                 {
-                    token = strtok(NULL, " ");
+                    token = strtok_r(NULL, " ", &saveptr);
                     trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
                     strcpy(config->defaultMapping, token);
                 }
@@ -76,7 +76,7 @@ JVSStatus processConfig(char *filePath, JVSConfig *config)
                 /* Get IO Choice */
                 if (strcmp(token, "DEFAULT_IO") == 0)
                 {
-                    token = strtok(NULL, " ");
+                    token = strtok_r(NULL, " ", &saveptr);
                     trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
                     config->defaultIO = atoi(token);
                 }
@@ -84,7 +84,7 @@ JVSStatus processConfig(char *filePath, JVSConfig *config)
                 /* Get IO Choice */
                 if (strcmp(token, "ATOMISWAVE_FIX") == 0)
                 {
-                    token = strtok(NULL, " ");
+                    token = strtok_r(NULL, " ", &saveptr);
                     trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
                     config->atomiswaveFix = atoi(token);
                     if (config->atomiswaveFix)

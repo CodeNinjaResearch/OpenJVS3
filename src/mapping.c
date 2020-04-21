@@ -13,28 +13,28 @@ int processMaps(Mapping *m)
 {
   for (int i = 0; i < m->insideCount; i++)
   {
-    MappingOut *temp_outmap = NULL;
-    temp_outmap = findMapping(m->insideMappings[i].mode, m);
-    if (temp_outmap != NULL)
+    MappingOut *tempOutsideMapping = NULL;
+    tempOutsideMapping = findMapping(m->insideMappings[i].mode, m);
+    if (tempOutsideMapping != NULL)
     {
       switch (m->insideMappings[i].type)
       {
       case ABS:
-        m->analogueMapping[m->insideMappings[i].channel] = *temp_outmap;
+        m->analogueMapping[m->insideMappings[i].channel] = *tempOutsideMapping;
         m->analogueMapping[m->insideMappings[i].channel].min = m->insideMappings[i].min;
         m->analogueMapping[m->insideMappings[i].channel].max = m->insideMappings[i].max;
         m->analogueMapping[m->insideMappings[i].channel].reverse = m->insideMappings[i].reverse;
         break;
       case KEY:
-        m->keyMapping[m->insideMappings[i].channel] = *temp_outmap;
+        m->keyMapping[m->insideMappings[i].channel] = *tempOutsideMapping;
         break;
       default:
-        printf("Mapping.c: Unknown inside mapping case\n");
+        printf("Warning: Unknown inside mapping case, use ABS or KEY.\n");
       }
     }
     else
     {
-      printf("%s:%d: Could not find mapping for: %s \n", __FILE__, __LINE__, modeEnumToString(m->insideMappings[i].mode));
+      printf("Warning: This outside map does not support: %s \n", modeEnumToString(m->insideMappings[i].mode));
     }
   }
 }
@@ -48,16 +48,7 @@ MappingOut *findMapping(Mode mode, Mapping *m)
       return &(m->outsideMappings[i]);
     }
   }
-<<<<<<< HEAD
-  if (debugEnabled)
-  {
-    printf("Warning: This outside map doesn't support %s\n", modeEnumToString(mode));
-  }
-  return m->outsideMappings[1];
-=======
-  printf("Warning: This outside map doesn't support %s\n", modeEnumToString(mode));
   return NULL;
->>>>>>> dev_RedOne87
 }
 
 void printMapping(Mapping *m)
@@ -115,7 +106,7 @@ void stopThreads()
 void *deviceThread(void *_args)
 {
   /* Device threads run with standard linux prio */
-  set_realtime_priority(false);
+  setRealtimePriority(false);
 
   struct MappingThreadArguments *args = (struct MappingThreadArguments *)_args;
   char eventPath[4096];
@@ -274,7 +265,7 @@ void *deviceThread(void *_args)
 void *wiiThread(void *_args)
 {
   /* Device threads run with standard linux prio */
-  set_realtime_priority(false);
+  setRealtimePriority(false);
   struct MappingThreadArguments *args = (struct MappingThreadArguments *)_args;
   char eventPath[4096];
   strcpy(eventPath, args->eventPath);

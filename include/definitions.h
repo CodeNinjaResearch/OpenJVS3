@@ -167,6 +167,6 @@ typedef struct
 
 Mode modeStringToEnum(const char *str);
 const char *modeEnumToString(Mode mode);
-int set_realtime_priority(bool realtime);
+int setRealtimePriority(bool realtime);
 
 #endif // DEFINITIONS_H_

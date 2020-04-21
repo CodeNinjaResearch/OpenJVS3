@@ -93,9 +93,7 @@ int setAnalogue(int channel, double value)
 
 int setRotary(int channel, double value)
 {
-  JVSCapabilities *capabilities = getCapabilities();
-
-  if (channel < capabilities->rotaryChannels)
+  if (channel < capabilities.rotaryChannels)
   {
     state.rotaryChannel[channel] = value * 255;
     return 1;

@@ -21,7 +21,7 @@ const char *modeEnumToString(Mode mode)
   return 0;
 }
 
-int set_realtime_priority(bool realtime)
+int setRealtimePriority(bool realtime)
 {
   int ret = 0;
   int policy = 0;
