@@ -15,10 +15,9 @@ int main(int argc, char **argv)
   printf("OpenJVS (Version %s.%s.%s)\n\n", PROJECT_VER_MAJOR, PROJECT_VER_MINOR, PROJECT_VER_PATCH);
 
   /* Get the config */
-  if (processConfig(DEFAULT_GLOBAL_CONFIG_PATH, &config) != OPEN_JVS_ERR_OK)
+  if (processConfig(DEFAULT_GLOBAL_CONFIG_PATH) != OPEN_JVS_ERR_OK)
   {
     printf("Warning: Could not read the config, using default config instead.\n");
-    strcpy(config.devicePath, "/dev/ttyUSB0");
   }
 
   /* Setup the inputs on the computer */
@@ -30,22 +29,22 @@ int main(int argc, char **argv)
 
   /* Init the IO */
   JVSCapabilities *capabilities;
-  switch (config.defaultIO)
+  switch (getConfig()->defaultIO)
   {
   case 0:
     capabilities = &SegaType3IO;
-    printf("JVS IO:\tSega Type 3 IO Board\n");
+    printf("Output: Sega Type 3 IO Board\n");
     break;
 
   case 1:
     capabilities = &OpenJVSCustomIO;
-    printf("JVS IO:\tCustom OpenJVS IO Board\n");
+    printf("Output: OpenJVS IO Board\n");
     break;
   }
   initIO(capabilities);
 
   /* Setup the JVS Emulator with the RS485 path and capabilities */
-  JVSStatus initJVSStatus = initJVS(config.devicePath);
+  JVSStatus initJVSStatus = initJVS(getConfig()->devicePath);
   if (initJVSStatus != OPEN_JVS_ERR_OK)
   {
     printf("Error: Failed to initialise JVS. Error code %d\n", initJVSStatus);

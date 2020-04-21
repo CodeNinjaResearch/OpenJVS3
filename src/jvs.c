@@ -43,20 +43,20 @@ JVSStatus initJVS(char *devicePath)
   initBuffer(&readBuffer);
 
   /* Set Sync algorithm from settings */
-  switch (config.senseType)
+  switch (getConfig()->senseType)
   {
   case 1:
-    SyncAlgorithmSet(SENSE_FLOAT);
-    SyncPinInit();
+    setSenseCircuit(SENSE_FLOAT);
+    initSense();
     break;
   case 2:
-    SyncAlgorithmSet(SENSE_SWITCH);
-    SyncPinInit();
+    setSenseCircuit(SENSE_SWITCH);
+    initSense();
     break;
   }
 
   /* Decide on debug */
-  debugEnabled = config.debugMode;
+  debugEnabled = getConfig()->debugMode;
 
   /* Init the connection to the JVS-Master */
   initDevice(devicePath);
@@ -186,7 +186,7 @@ JVSStatus processPacket(JVSPacket *inPacket, JVSPacket *outPacket)
         {
           debug("CMD_RESET");
           deviceID = -1;
-          SyncPinLow(0);
+          setSensePin(0);
 
           sizeCurrentCmd = CMD_LEN_CMD + 1;
         }
@@ -200,7 +200,7 @@ JVSStatus processPacket(JVSPacket *inPacket, JVSPacket *outPacket)
           outPacket->data[outPacket->length] = REPORT_SUCCESS;
           outPacket->length += 1;
 
-          SyncPinLow(1);
+          setSensePin(1);
 
           sizeCurrentCmd = CMD_LEN_CMD + 1;
         }
@@ -336,7 +336,7 @@ JVSStatus processPacket(JVSPacket *inPacket, JVSPacket *outPacket)
           for (uint32_t i = 0; i < numberAnalogChannels; i++)
           {
 
-            if (config.atomiswaveFix)
+            if (getConfig()->atomiswaveFix)
             {
               /* Data must be 8 bit right aligned for atomiswave maximum speed */
               outPacket->data[outPacket->length + 0] = 0x00;
@@ -629,7 +629,7 @@ JVSStatus jvs_do(void)
     /* Flush receive buffer and start over */
     initBuffer(&readBuffer);
 
-    SyncPinLow(0);
+    setSensePin(0);
     if (debugEnabled)
     {
       printf("Timeout Reset buffer and address\n");

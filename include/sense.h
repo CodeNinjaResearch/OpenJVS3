@@ -26,9 +26,9 @@ typedef enum
     SENSE_NONE,
 } JVSSenseCircuit;
 
-int SyncPinInit(void);
-int SyncPinLow(bool pull_low);
-JVSStatus SyncAlgorithmSet(JVSSenseCircuit circuitType);
+int initSense(void);
+int setSensePin(bool pull_low);
+JVSStatus setSenseCircuit(JVSSenseCircuit circuitType);
 
 int GPIOUnexport(int pin);
 int GPIOExport(int pin);

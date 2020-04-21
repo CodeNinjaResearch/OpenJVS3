@@ -3,6 +3,8 @@
 
 #include "config.h"
 
+JVSConfig config;
+
 void trimToken(char *str, int maxlen)
 {
     int length = strnlen(str, maxlen);
@@ -18,15 +20,20 @@ void trimToken(char *str, int maxlen)
     }
 }
 
-JVSStatus processConfig(char *filePath, JVSConfig *config)
+JVSConfig *getConfig()
+{
+    return &config;
+}
+
+JVSStatus processConfig(char *filePath)
 {
     // Setup default values
-    strcpy(config->devicePath, "/dev/ttyUSB0");
-    strcpy(config->defaultMapping, "driving-generic");
-    config->atomiswaveFix = 0;
-    config->debugMode = 0;
-    config->defaultIO = 1;
-    config->senseType = 1;
+    strcpy(config.devicePath, "/dev/ttyUSB0");
+    strcpy(config.defaultMapping, "driving-generic");
+    config.atomiswaveFix = 0;
+    config.debugMode = 0;
+    config.defaultIO = 1;
+    config.senseType = 1;
 
     FILE *fp;
     char buffer[1024];
@@ -46,7 +53,7 @@ JVSStatus processConfig(char *filePath, JVSConfig *config)
                 {
                     token = strtok_r(NULL, " ", &saveptr);
                     trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
-                    strcpy(config->devicePath, token);
+                    strcpy(config.devicePath, token);
                 }
 
                 /* Grab sense type */
@@ -54,7 +61,7 @@ JVSStatus processConfig(char *filePath, JVSConfig *config)
                 {
                     token = strtok_r(NULL, " ", &saveptr);
                     trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
-                    config->senseType = atoi(token);
+                    config.senseType = atoi(token);
                 }
 
                 /* Grab debug type */
@@ -62,7 +69,7 @@ JVSStatus processConfig(char *filePath, JVSConfig *config)
                 {
                     token = strtok_r(NULL, " ", &saveptr);
                     trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
-                    config->debugMode = atoi(token);
+                    config.debugMode = atoi(token);
                 }
 
                 /* Grab default mapping */
@@ -70,7 +77,7 @@ JVSStatus processConfig(char *filePath, JVSConfig *config)
                 {
                     token = strtok_r(NULL, " ", &saveptr);
                     trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
-                    strcpy(config->defaultMapping, token);
+                    strcpy(config.defaultMapping, token);
                 }
 
                 /* Get IO Choice */
@@ -78,7 +85,7 @@ JVSStatus processConfig(char *filePath, JVSConfig *config)
                 {
                     token = strtok_r(NULL, " ", &saveptr);
                     trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
-                    config->defaultIO = atoi(token);
+                    config.defaultIO = atoi(token);
                 }
 
                 /* Get IO Choice */
@@ -86,8 +93,8 @@ JVSStatus processConfig(char *filePath, JVSConfig *config)
                 {
                     token = strtok_r(NULL, " ", &saveptr);
                     trimToken(token, sizeof(buffer) - ((unsigned int)((token - buffer))));
-                    config->atomiswaveFix = atoi(token);
-                    if (config->atomiswaveFix)
+                    config.atomiswaveFix = atoi(token);
+                    if (config.atomiswaveFix)
                     {
                         printf("Warning: Running ATOMISWAVE analogue fix, make sure the IO is 8-bit.\n");
                     }

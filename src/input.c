@@ -37,15 +37,14 @@ void connectDevices()
         strcat(temp, devices[i].name);
         if (access(temp, F_OK) != -1)
         {
-            printf("Input:\t%s\n", devices[i].name);
+            printf("Input: %s\n", devices[i].name);
 
             char mappingName[4096];
             strcpy(mappingName, DEFAULT_ARCADE_MAP_PATH);
-            strcat(mappingName, config.defaultMapping);
+            strcat(mappingName, getConfig()->defaultMapping);
 
             if (strcmp(devices[i].name, "nintendo-wii-remote-ir") == 0)
             {
-                printf("Input:\tNintendo Wii Remote\n");
                 startWiiThread(devices[i].path, temp, mappingName);
             }
             else

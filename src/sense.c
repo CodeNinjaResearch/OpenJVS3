@@ -5,7 +5,7 @@
 
 static JVSSenseCircuit circuitToUse = SENSE_FLOAT;
 
-JVSStatus SyncAlgorithmSet(JVSSenseCircuit circuitType)
+JVSStatus setSenseCircuit(JVSSenseCircuit circuitType)
 {
 	JVSStatus retval = OPEN_JVS_ERR_OK;
 
@@ -28,7 +28,7 @@ JVSStatus SyncAlgorithmSet(JVSSenseCircuit circuitType)
 	return retval;
 }
 
-int SyncPinInit(void)
+int initSense(void)
 {
 	int retval = 0;
 
@@ -59,7 +59,7 @@ int SyncPinInit(void)
 			retval = GPIODirection(SENSE_PIN, OUT);
 			if (retval != 0)
 			{
-				if (config.debugMode)
+				if (getConfig()->debugMode)
 					printf("Warning: Sync pin %d could not be set to output\n", SENSE_PIN);
 			}
 		}
@@ -71,11 +71,11 @@ int SyncPinInit(void)
 		}
 	}
 
-	SyncPinLow(false);
+	setSensePin(false);
 	return retval;
 }
 
-int SyncPinLow(bool pull_low)
+int setSensePin(bool pull_low)
 {
 	int error = 0;
 
@@ -89,7 +89,7 @@ int SyncPinLow(bool pull_low)
 
 			if (error != 0)
 			{
-				if (config.debugMode)
+				if (getConfig()->debugMode)
 					printf("Warning: Failed to ground  pin %d\n", SENSE_PIN);
 			}
 		}
@@ -106,7 +106,7 @@ int SyncPinLow(bool pull_low)
 
 			if (error != 0)
 			{
-				if (config.debugMode)
+				if (getConfig()->debugMode)
 					printf("Warning: Failed to ground  pin %d\n", SENSE_PIN);
 			}
 		}
@@ -117,13 +117,13 @@ int SyncPinLow(bool pull_low)
 
 		default:
 		{
-			if (config.debugMode)
+			if (getConfig()->debugMode)
 				printf("Invalid Sync algorithm net: %u \n", circuitToUse);
 		}
 		break;
 		}
 
-		if (config.debugMode)
+		if (getConfig()->debugMode)
 			debug("Floated sense pin");
 	}
 	else
@@ -136,7 +136,7 @@ int SyncPinLow(bool pull_low)
 
 			if (error != 0)
 			{
-				if (config.debugMode)
+				if (getConfig()->debugMode)
 					printf("Warning: Failed to pull high pin %d\n", SENSE_PIN);
 			}
 		}
@@ -148,7 +148,7 @@ int SyncPinLow(bool pull_low)
 
 			if (error != 0)
 			{
-				if (config.debugMode)
+				if (getConfig()->debugMode)
 					printf("Warning: Failed to float pin %d\n", SENSE_PIN);
 			}
 		}
@@ -159,13 +159,13 @@ int SyncPinLow(bool pull_low)
 
 		default:
 		{
-			if (config.debugMode)
+			if (getConfig()->debugMode)
 				printf("Invalid Sync algorithm net: %u \n", circuitToUse);
 		}
 		break;
 		}
 
-		if (config.debugMode)
+		if (getConfig()->debugMode)
 			debug("Grounded sense pin");
 	}
 	return error;
@@ -273,14 +273,14 @@ int GPIOWrite(int pin, int value)
 	fd = open(path, O_WRONLY);
 	if (-1 == fd)
 	{
-		if (config.debugMode)
+		if (getConfig()->debugMode)
 			fprintf(stderr, "Failed to open gpio value for writing!\n");
 		return (-1);
 	}
 
 	if (1 != write(fd, &s_values_str[LOW == value ? 0 : 1], 1))
 	{
-		if (config.debugMode)
+		if (getConfig()->debugMode)
 			fprintf(stderr, "Failed to write value!\n");
 		return (-1);
 	}
