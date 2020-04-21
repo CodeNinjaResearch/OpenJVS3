@@ -2,8 +2,9 @@
 #include "jvs.h"
 #include "definitions.h"
 #include "config.h"
+#include "debug.h"
 
-static JVSSenseCircuit circuitToUse = SENSE_FLOAT;
+JVSSenseCircuit circuitToUse = SENSE_FLOAT;
 
 JVSStatus setSenseCircuit(JVSSenseCircuit circuitType)
 {
