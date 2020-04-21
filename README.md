@@ -1,9 +1,17 @@
 # OpenJVS3
 [![Build status](https://github.com/bobbydilley/OpenJVS3/workflows/Build/badge.svg?branch=master)](https://github.com/bobbydilley/OpenJVS3/actions?query=branch%3Amaster)
 
-This is a completely new version of OpenJVS built from the JVSCore project. The aim of this revision of the software is to be stable on all hardware and linux distributions, and built in a maintainable way.
+This is a completely new version of OpenJVS built from the JVSCore project. The aim of this revision of the software is to be stable on all hardware and linux distributions, and built in a maintainable way. OpenJVS aims to be a drop in replacement for any sort of IO board, and currently supports the following hardware.
+
+- Sega Naomi
+- Sega Naomi 2
+- Sega Chihiro
+- Sega Lindbergh
+- Sega Ringedge
 
 ## Installation
+
+The software is tested to work work on a Raspian Linux running on a Raspberry Pi 2 and above. Ubuntu linux is known to work as well.
 
 To install OpenJVS3 follow the instructions below to install the required packages and make the program.
 
@@ -28,14 +36,3 @@ sudo openjvs
 ## Setup
 
 Settings files are located in `/etc/openjvs/` which contains the global config file and both mapping from USB devices to OpenJVS and OpenJVS to Arcade Hardware.
-
-### Devices
-
-Below are the list of commands they take:
-
-- ABS 255 ACCEL
-- KEY 25 BUTTON_1
-
-### Arcade
-
-- BUTTON 1 BUTTON_1
