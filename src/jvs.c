@@ -3,6 +3,9 @@
 int deviceID = -1;
 int debugEnabled = 0;
 
+JVSPacket inPacket;
+JVSPacket outputPacket;
+
 int initJVS(char *devicePath, JVSCapabilities *capabilitiesSetup)
 {
 	/* Init the connection to the Naomi */
@@ -103,7 +106,6 @@ int processPacket()
 	JVSState *state = getState();
 	JVSCapabilities *capabilities = getCapabilities();
 
-	JVSPacket inPacket;
 
 	int attempts = 3;
 	if (attempts > 0 && !readPacket(&inPacket))
@@ -116,7 +118,6 @@ int processPacket()
 		}
 	}
 
-	JVSPacket outputPacket;
 	outputPacket.length = 0;
 	outputPacket.destination = BUS_MASTER;
 
@@ -222,7 +223,7 @@ int processPacket()
 		case CMD_WRITE_GPO:
 			debug("CMD_WRITE_GPO");
 			size = 2 + inPacket.data[index + 1];
-			for (int i = 0; i < inPacket.data[index + 1]; i++)
+/*			for (int i = 0; i < inPacket.data[index + 1]; i++)
 			{
 				unsigned char thing = inPacket.data[index + 1 + i];
 				for (int j = 7; j >= 0; j--)
@@ -232,7 +233,7 @@ int processPacket()
 				}
 				printf(" ");
 			}
-			printf("\n");
+			printf("\n");*/
 			outputPacket.data[outputPacket.length] = STATUS_SUCCESS;
 			outputPacket.length += 1;
 			break;
