@@ -396,6 +396,31 @@ JVSStatus processPacket(JVSPacket *inPacket, JVSPacket *outPacket)
           sizeCurrentCmd = CMD_LEN_CMD + 1 + numberBytes;
         }
         break;
+
+        case CMD_CONVEY_ID:
+        {
+          debug(1, "CMD_CONVEY_ID\n");
+          int idLength = 0;
+          char idData[100];
+          for (int i = 0; i < 100; i++)
+          {
+            idData[i] = (char)inPacket->data[inPacketIndex + CMD_LEN_CMD + i];
+
+            idLength++;
+
+            if (inPacket->data[inPacketIndex + CMD_LEN_CMD + i] == 0x00)
+              break;
+          }
+
+          debug(1, "ID CONVEYED: %s\n", idData);
+
+          outPacket->data[outPacket->length] = REPORT_SUCCESS;
+          outPacket->length += 1;
+
+          sizeCurrentCmd = CMD_LEN_CMD + idLength;
+        }
+        break;
+
         default:
         {
           retval = OPEN_JVS_ERR_INVALID_CMD;
