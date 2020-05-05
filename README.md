@@ -25,6 +25,12 @@ dpkg --install build/*.deb
 
 Please note when installing the package again, any settings files you have modified will be overwritten. Map/Device files that you have __added__ your self will remain safe.
 
+## Sense Circuit
+
+For anything other than the Sega Naomi 1 you need to wire a Sense circuit like the one seen below:
+
+![Sense Circuit](docs/JVSIOCircuit.png)
+
 ## Usage
 
 OpenJVS3 can be run from the command line by typing the executable name.
