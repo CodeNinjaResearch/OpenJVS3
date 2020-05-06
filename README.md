@@ -1,12 +1,16 @@
 # OpenJVS3
 [![Build status](https://github.com/bobbydilley/OpenJVS3/workflows/Build/badge.svg?branch=master)](https://github.com/bobbydilley/OpenJVS3/actions?query=branch%3Amaster)
 
-This is a completely new version of OpenJVS built from the JVSCore project. The aim of this revision of the software is to be stable on all hardware and linux distributions, and built in a maintainable way. OpenJVS aims to be a drop in replacement for any sort of IO board, and currently supports the following hardware.
+This is a completely new version of OpenJVS built from the JVSCore project. The aim of this revision of the software is to be stable on all hardware and linux distributions, and built in a maintainable way. OpenJVS aims to be a drop in replacement for any sort of IO board, and currently supports the following hardware:
 
 - Sega Naomi
 - Sega Naomi 2
+- Sega Triforce
 - Sega Chihiro
 - Sega Lindbergh
+
+The following hardware is **currently not supported**, however we are working to fix the issues.
+
 - Sega Ringedge
 
 ## Installation
