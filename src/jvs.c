@@ -6,6 +6,10 @@ int debugEnabled = 0;
 JVSPacket inPacket;
 JVSPacket outputPacket;
 
+unsigned char outputBuffer[MAX_PACKET_SIZE];
+unsigned char inputBuffer[MAX_PACKET_SIZE];
+
+
 int initJVS(char *devicePath, JVSCapabilities *capabilitiesSetup)
 {
 	/* Init the connection to the Naomi */
@@ -271,7 +275,6 @@ int readPacket(JVSPacket *packet)
 	readBytes(&packet->length, 1);
 	unsigned char checksumComputed = packet->destination + packet->length;
 
-	unsigned char inputBuffer[MAX_PACKET_SIZE];
 	int read = 0;
 	while (read < packet->length)
 	{
@@ -310,7 +313,6 @@ int writePacket(JVSPacket *packet)
 	}
 
 	int outputIndex = 0;
-	unsigned char outputBuffer[MAX_PACKET_SIZE];
 
 	outputBuffer[outputIndex] = SYNC;
 	outputBuffer[outputIndex + 1] = packet->destination;
