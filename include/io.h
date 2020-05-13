@@ -61,20 +61,23 @@ static JVSCapabilities SegaType3IO =
         .generalPurposeOutputs = 20,
 };
 
-static JVSCapabilities OpenJVSCustomIO =
+static JVSCapabilities NamcoJYUPCB =
     {
-        .name = "OpenJVS Emulator;I/O BD JVS;837-13551;Ver1.00;98/10",
+        .name = "namco ltd.;JYU-PCB;Ver1.00;JPN,2Coins 2Guns",
         .players = 2,
-        .switches = 16,
-        .jvsCommandVersion = 0x10,
-        .jvsVersion = 0x11,
+        .switches = 12,
+        .jvsCommandVersion = 0x11,
+        .jvsVersion = 0x20,
         .jvsComVersion = 0x10,
-        .analogueInChannels = 8,
-        .analogueInBits = 8,
-        .rotaryChannels = 8,
         .coins = 2,
-        .generalPurposeOutputs = 6,
+        .generalPurposeOutputs = 16,
+        .gunChannels = 2,
+        .gunXBits = 16,
+        .gunYBits = 16,
+
 };
+
+
 
 JVSStatus initIO(JVSCapabilities *capabilitiesSetup);
 int setSwitch(int player, int switchNumber, int value);

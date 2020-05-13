@@ -9,8 +9,8 @@
 # The default game mapping
 DEFAULT_MAPPING driving-generic
 
-# The IO Board to emulate (0 type 3, 1 openjvs custom io, (yet to support: 2 namco io, 3 type 1 io))
-DEFAULT_IO 1
+# The IO Board to emulate (0 type 3, 1 namco jyu io)
+DEFAULT_IO 0
 
 # The path of the RS485 Converter
 DEVICE_PATH /dev/ttyUSB0

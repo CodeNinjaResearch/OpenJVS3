@@ -121,6 +121,15 @@ int writeCapabilities(JVSPacket *outputPacket, JVSCapabilities *capabilities)
     outputPacket->length += 4;
   }
 
+  if (capabilities->gunChannels > 0)
+  {
+    outputPacket->data[outputPacket->length] = CAP_LIGHTGUN;
+    outputPacket->data[outputPacket->length + 1] = capabilities->gunXBits;
+    outputPacket->data[outputPacket->length + 2] = capabilities->gunYBits;
+    outputPacket->data[outputPacket->length + 3] = capabilities->gunChannels;
+    outputPacket->length += 4;
+  }
+
   outputPacket->data[outputPacket->length] = CAP_END;
   outputPacket->length += 1;
 
@@ -418,6 +427,23 @@ JVSStatus processPacket(JVSPacket *inPacket, JVSPacket *outPacket)
           outPacket->length += 1;
 
           sizeCurrentCmd = CMD_LEN_CMD + idLength;
+        }
+        break;
+
+        case CMD_READ_LIGHTGUN:
+        {
+          debug(1, "CMD_READ_LIGHTGUN\n");
+
+          outPacket->data[outPacket->length] = REPORT_SUCCESS;
+          outPacket->length += 1;
+
+          // Write out gun information
+          outPacket->data[outPacket->length++] = 0x00;
+          outPacket->data[outPacket->length++] = 0xFF - state->analogueChannel[0];
+          outPacket->data[outPacket->length++] = 0x00;
+          outPacket->data[outPacket->length++] = 0x00 - state->analogueChannel[1];
+
+          sizeCurrentCmd = CMD_LEN_CMD + 1;
         }
         break;
 

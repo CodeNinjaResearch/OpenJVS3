@@ -37,8 +37,8 @@ int main(int argc, char **argv)
     break;
 
   case 1:
-    capabilities = &OpenJVSCustomIO;
-    printf("Output: OpenJVS IO Board\n");
+    capabilities = &NamcoJYUPCB;
+    printf("Output: Namco JYU IO Board\n");
     break;
   }
   initIO(capabilities);
