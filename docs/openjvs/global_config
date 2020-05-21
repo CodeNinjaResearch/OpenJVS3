@@ -13,10 +13,11 @@ DEFAULT_MAPPING driving-generic
 DEFAULT_IO 0
 
 # The path of the RS485 Converter
-DEVICE_PATH /dev/ttyUSB0
+#DEVICE_PATH /dev/ttyUSB0
+
 
 # The type of sense circuit to use (0 no circuit, 1 float, 2 switch)
-SENSE_TYPE 1
+SENSE_TYPE 2
 
 # Output debug info
 DEBUG_MODE 0

@@ -41,6 +41,7 @@
 #define CMD_WRITE_GPO 0x32          // write to general-purpose outputs
 #define CMD_WRITE_ANALOG 0x33       // write to analog outputs
 #define CMD_WRITE_DISPLAY 0x34      // write to an alphanumeric display
+#define CMD_WRITE_GPO_2 0x37        // write to general purpose outputs 2
 #define CMD_MANUFACTURER_START 0x60 // start of manufacturer-specific commands
 #define CMD_MANUFACTURER_END 0x7F   // end of manufacturer-specific commands
 #define CAP_END 0x00                // end of structure

@@ -25,7 +25,7 @@ JVSConfig *getConfig()
     return &config;
 }
 
-JVSStatus processConfig(char *filePath)
+JVSStatus processConfig(char *filePath, char *custom_mapping)
 {
     // Setup default values
     strcpy(config.devicePath, "/dev/ttyUSB0");
@@ -108,6 +108,12 @@ JVSStatus processConfig(char *filePath)
         return OPEN_JVS_ERR_NULL;
     }
     fclose(fp);
+
+    /* Use custom OutMapping if provided */
+    if (custom_mapping != NULL)
+    {
+        strcpy(config.defaultMapping, custom_mapping);
+    }
 
     return OPEN_JVS_ERR_OK;
 }
