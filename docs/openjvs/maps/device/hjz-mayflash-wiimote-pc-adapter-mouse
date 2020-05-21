@@ -1,0 +1,10 @@
+# Button Right 
+KEY 273 BUTTON_1
+# Button Left
+KEY 272 BUTTON_2
+
+
+# X-Axis
+ABS 0 WHEEL
+# Y-Axis
+ABS 1 BREAK
