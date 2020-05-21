@@ -54,6 +54,10 @@ JVSStatus initJVS(char *devicePath)
   /* Init the connection to the JVS-Master */
   initDevice(devicePath);
 
+#ifdef DEBUG_PIN_ENALBED
+  DebugPinInit();
+#endif
+
   return retval;
 }
 
@@ -396,6 +400,20 @@ JVSStatus processPacket(JVSPacket *inPacket, JVSPacket *outPacket)
           sizeCurrentCmd = CMD_LEN_CMD + 1 + numberBytes;
         }
         break;
+
+        case CMD_WRITE_GPO_2:
+        {
+          debug(1, "CMD_WRITE_GPO2\n");
+          uint8_t byte_position = inPacket->data[inPacketIndex + CMD_LEN_CMD + 0];
+          uint8_t byte_data = inPacket->data[inPacketIndex + CMD_LEN_CMD + 1];
+
+          outPacket->data[outPacket->length] = REPORT_SUCCESS;
+          outPacket->length += 1;
+
+          sizeCurrentCmd = CMD_LEN_CMD + 2;
+        }
+        break;
+
         default:
         {
           retval = OPEN_JVS_ERR_INVALID_CMD;
@@ -459,11 +477,14 @@ void test_buffer()
   //uint8_t cmd[] =  { 0xE0, 0xFF, 0x3, 0xef, 0x10, 0x01 }; /* Test CMD */
 
   // Maze of Kings
-  uint8_t cmd[] = {0xE0, 0x01, 0x0D, 0x32, 0x01, 0x00, 0x20, 0x02, 0x02, 0x22, 0x08, 0x23, 0x08, 0x21, 0x02, 0xDD};
+  //uint8_t cmd[] = {0xE0, 0x01, 0x0D, 0x32, 0x01, 0x00, 0x20, 0x02, 0x02, 0x22, 0x08, 0x23, 0x08, 0x21, 0x02, 0xDD};
+
+  // Dream Riders
+  uint8_t cmd[] = {0xE0, 0x01, 0x11, 0x21, 0x02, 0x20, 0x02, 0x02, 0x22, 0x08, 0x37, 0x01, 0x00, 0x37, 0x02, 0x00, 0x37, 0x03, 0x00, 0x2E};
 
   for (uint32_t i = 0; i < sizeof(cmd); i++)
   {
-    if (BUFFER_SUCCESS != pushToBuffer(&read_buffer, cmd[i]))
+    if (BUFFER_SUCCESS != pushToBuffer(&readBuffer, cmd[i]))
     {
       debug(2, "circ_buffer_push returned error!");
       exit(-1);

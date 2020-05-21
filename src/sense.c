@@ -29,6 +29,38 @@ JVSStatus setSenseCircuit(JVSSenseCircuit circuitType)
 	return retval;
 }
 
+int DebugPinInit(void)
+{
+	int retval = 0;
+	retval = GPIOExport(DEBUG_PIN);
+
+	if (retval != 0)
+	{
+		printf("Warning: DEBUG_PIN pin %d not available\n", DEBUG_PIN);
+	}
+
+	if (retval != 0)
+	{
+		retval = GPIODirection(DEBUG_PIN, OUT);
+		if (retval != 0)
+		{
+			printf("Warning: DEBUG_PIN pin %d could not be set to output\n", DEBUG_PIN);
+		}
+	}
+
+	if (retval != 0)
+	{
+		DebugPinSet(0);
+	}
+	return retval;
+}
+
+void DebugPinSet(uint8_t b)
+{
+	int error = 0;
+	error = GPIOWrite(DEBUG_PIN, b);
+}
+
 int initSense(void)
 {
 	int retval = 0;

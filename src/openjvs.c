@@ -15,7 +15,7 @@ int main(int argc, char **argv)
   printf("OpenJVS (Version %s.%s.%s)\n\n", PROJECT_VER_MAJOR, PROJECT_VER_MINOR, PROJECT_VER_PATCH);
 
   /* Get the config */
-  if (processConfig(DEFAULT_GLOBAL_CONFIG_PATH) != OPEN_JVS_ERR_OK)
+  if (processConfig(DEFAULT_GLOBAL_CONFIG_PATH, (argc > 1) ? argv[1] : NULL) != OPEN_JVS_ERR_OK)
   {
     printf("Warning: Could not read the config, using default config instead.\n");
   }
@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 #ifdef OFFLINE_MODE
     // Give time for debug prints of task started later
     sleep(1);
-    retval = OPEN_JVS_ERR_OFFLINE;
+    status = OPEN_JVS_ERR_OFFLINE;
     //return 0;
 #endif
 

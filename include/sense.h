@@ -12,6 +12,7 @@
 #include "definitions.h"
 
 #define SENSE_PIN 12
+#define DEBUG_PIN 7
 
 #define IN 0
 #define OUT 1
@@ -36,7 +37,7 @@ int GPIODirection(int pin, int dir);
 int GPIORead(int pin);
 int GPIOWrite(int pin, int value);
 
-void set_debug_pin(uint8_t b);
-void init_debug_pin(void);
+void DebugPinSet(uint8_t b);
+int DebugPinInit(void);
 
 #endif // SENSE_H_

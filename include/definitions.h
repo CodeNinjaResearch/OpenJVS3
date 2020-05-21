@@ -11,6 +11,8 @@
 
 //#define OFFLINE_MODE
 
+//#define DEBUG_PIN_ENALBED
+
 #define min(x, y) ((x) <= (y)) ? (x) : (y)
 
 typedef enum
