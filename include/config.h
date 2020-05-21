@@ -25,7 +25,7 @@ typedef struct JVSConfig
 
 JVSConfig *getConfig();
 
-JVSStatus processConfig(char *filePath);
+JVSStatus processConfig(char *filePath, char *custom_mapping);
 int processInMapFile(char *filePath, MappingIn *mappingIn);
 int processOutMapFile(char *filePath, MappingOut *mappingOut);
 
