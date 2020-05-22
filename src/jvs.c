@@ -553,7 +553,7 @@ JVSStatus jvs_do(void)
   uint32_t request_len_raw;
 
 #ifndef OFFLINE_MODE
-  retval = read_serial(/*serial */ &readBuffer);
+  retval = read_serial(&readBuffer);
 #else
   static bool once = false;
   if (!once)

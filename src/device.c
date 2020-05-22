@@ -2,6 +2,9 @@
 #include "device.h"
 #include "definitions.h"
 
+// DEBUG only
+#include "sense.h"
+
 int serialIO = -1;
 
 int initDevice(char *devicePath)
@@ -29,6 +32,8 @@ JVSStatus write_serial(/*int serial,*/ uint8_t *data, uint32_t data_len)
 {
   JVSStatus retval = OPEN_JVS_ERR_OK;
 
+  DebugPinSet(0);
+
   int n = write(serialIO, data, data_len);
 
   if (n != data_len)
@@ -42,7 +47,7 @@ JVSStatus write_serial(/*int serial,*/ uint8_t *data, uint32_t data_len)
   return retval;
 }
 
-JVSStatus read_serial(/*int serial ,*/ Buffer *read_buffer)
+JVSStatus read_serial(Buffer *read_buffer)
 {
   JVSStatus retval = OPEN_JVS_ERR_OK;
 
@@ -94,6 +99,8 @@ JVSStatus read_serial(/*int serial ,*/ Buffer *read_buffer)
 
     /* Get data from serial */
     n = read(serial, receive_buffer, min(sizeof(receive_buffer), circ_free));
+
+    DebugPinSet(1);
 
     if (0 > n)
     {

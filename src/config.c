@@ -28,10 +28,11 @@ JVSConfig *getConfig()
 JVSStatus processConfig(char *filePath, char *custom_mapping)
 {
     // Setup default values
-    strcpy(config.devicePath, "/dev/ttyUSB0");
+    //strcpy(config.devicePath, "/dev/ttyUSB0");
+    strcpy(config.devicePath, "/dev/ttyAMA0");
     strcpy(config.defaultMapping, "driving-generic");
     config.atomiswaveFix = 0;
-    config.debugMode = 0;
+    config.debugMode = 2;
     config.defaultIO = 1;
     config.senseType = 1;
 
