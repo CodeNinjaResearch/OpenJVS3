@@ -32,6 +32,14 @@ typedef enum
 
 } BufferStatus;
 
+typedef struct
+{
+	void *array;
+	uint32_t used;
+	uint32_t size;
+	uint32_t element_size;
+} Array;
+
 void initBuffer(Buffer *buffer);
 BufferStatus bufferAvailable(Buffer *buffer, uint32_t *bytes);
 BufferStatus bufferFilled(Buffer *buffer, uint32_t *bytes);

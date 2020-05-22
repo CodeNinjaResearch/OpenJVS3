@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "buffer.h"
 
@@ -117,4 +118,31 @@ void printBuffer(Buffer *buffer)
 		printf("%02X", data);
 	}
 	printf("\n");
+}
+
+void initArray(Array *a, size_t initialSize, size_t element_size)
+{
+	a->element_size = element_size;
+	a->array = malloc(initialSize * element_size);
+	a->used = 0;
+	a->size = initialSize;
+}
+
+void insertArray(Array *a, void *element)
+{
+	/* Double size in case we run out of space */
+	if (a->used == a->size)
+	{
+		a->size *= 2;
+		a->array = realloc(a->array, a->size * a->element_size);
+	}
+
+	memcpy(((uint8_t *)a->array) + (a->used * a->element_size), element, a->element_size);
+}
+
+void freeArray(Array *a)
+{
+	free(a->array);
+	a->array = NULL;
+	a->used = a->size = 0;
 }
